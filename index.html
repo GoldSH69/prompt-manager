@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프롬프트 매니저</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root{--ff:'Nanum Gothic',sans-serif;--fs:9pt}
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:var(--ff);font-size:var(--fs);background:#f5f6fa;min-height:100vh;color:#4a4a5a}
+
+        .header{background:#fff;border-bottom:1px solid #e8e8ef;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+        .header h1{font-size:calc(var(--fs) + 3pt);font-weight:800;color:#6c7bbf}
+        .hbtns{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+        .hb{padding:5px 12px;border:none;border-radius:5px;cursor:pointer;font-size:calc(var(--fs) - 1pt);font-weight:700;font-family:var(--ff);transition:.2s}
+        .hb1{background:#b8c6f0;color:#fff}.hb1:hover{background:#9aaceb}
+        .hb2{background:#f0b8cb;color:#fff}.hb2:hover{background:#e8a0b8}
+        .hb3{background:#a8d8d8;color:#fff}.hb3:hover{background:#8ec8c8}
+        .hb4{background:#e8dff0;color:#8a7aaa}.hb4:hover{background:#d8cce6}
+        .hb5{background:#f0dca8;color:#9a8450}.hb5:hover{background:#e8d090}
+        .hb6{background:#c8b8f0;color:#fff}.hb6:hover{background:#b0a0e8}
+        .hb7{background:#2d333b;color:#f0f6fc}.hb7:hover{background:#444c56}
+
+        .sbar{padding:10px 20px 6px}
+        .sbar input{width:100%;padding:7px 12px;border-radius:6px;border:1px solid #e0e0ea;background:#fff;color:#4a4a5a;font-size:calc(var(--fs) - 1pt);font-family:var(--ff);outline:none}
+        .sbar input:focus{border-color:#b8c6f0;box-shadow:0 0 0 2px rgba(184,198,240,.2)}
+        .sbar input::placeholder{color:#b0b0c0}
+
+        .fbar{padding:4px 20px;display:flex;gap:5px;flex-wrap:wrap;min-height:26px;align-items:center}
+        .fchip{padding:3px 10px;border-radius:10px;border:1px solid #e0e0ea;background:#fff;color:#8888a0;font-size:calc(var(--fs) - 1.5pt);font-family:var(--ff);cursor:pointer;transition:.15s;user-select:none;white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
+        .fchip:hover{border-color:#b8c6f0;color:#6c7bbf}
+        .fchip.active{background:#b8c6f0;color:#fff;border-color:#b8c6f0}
+        .fchip.dragging{opacity:.4}.fchip.dragover{border-color:#6c7bbf;box-shadow:0 0 0 2px rgba(108,123,191,.3)}
+        .fchip .gh{cursor:grab;font-size:8px;color:#c0c0d0}
+
+        .stbar{padding:4px 20px 6px;font-size:calc(var(--fs) - 1.5pt);color:#a0a0b4;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+        .badge{font-size:calc(var(--fs) - 2pt);padding:2px 8px;border-radius:8px;display:inline-flex;align-items:center;gap:4px}
+        .bon{background:#e6f5ee;color:#6abb8a}.boff{background:#fce8e8;color:#d48888}.bfolder{background:#fef5e0;color:#c8a84a}.bobs{background:#e8e0f8;color:#8a70c0}.bgist{background:#e0e8f0;color:#2d333b}
+
+        .grid{padding:8px 20px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+        .card{background:#fff;border:1px solid #ececf2;border-radius:8px;overflow:hidden;transition:.15s;cursor:pointer;position:relative}
+        .card:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.06)}
+        .card.dragging{opacity:.3;transform:scale(.96)}
+        .card.dragover{border:2px solid #6c7bbf;box-shadow:0 0 0 3px rgba(108,123,191,.15)}
+        .cdh{position:absolute;top:0;left:0;width:100%;height:22px;display:flex;align-items:center;justify-content:center;cursor:grab;color:#d0d0e0;font-size:10px;letter-spacing:2px;z-index:2;transition:.15s}
+        .cdh:hover{color:#9aaceb;background:rgba(184,198,240,.08)}
+        .cdh:active{cursor:grabbing}
+        .chd{padding:24px 12px 6px;display:flex;justify-content:space-between;align-items:flex-start}
+        .ctw{flex:1;min-width:0}
+        .ctt{font-size:var(--fs);font-weight:700;color:#3a3a4a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .ctg{display:inline-block;font-size:calc(var(--fs) - 2pt);padding:1px 6px;border-radius:8px;background:#eef0fa;color:#8890bc;font-weight:700;margin-top:3px}
+        .cacts{display:flex;gap:3px;flex-shrink:0;margin-left:6px}
+        .cb{width:22px;height:22px;border-radius:5px;border:none;cursor:pointer;font-size:9px;display:flex;align-items:center;justify-content:center;transition:.15s}
+        .cbc{background:#eef0fa;color:#8890bc}.cbc:hover{background:#b8c6f0;color:#fff}
+        .cbe{background:#fef5e0;color:#c8a84a}.cbe:hover{background:#f0d87a;color:#fff}
+        .cbd{background:#e6f5ee;color:#6abb8a}.cbd:hover{background:#88d4a8;color:#fff}
+        .cbx{background:#fce8e8;color:#d48888}.cbx:hover{background:#e88888;color:#fff}
+        .cbo{background:#e8e0f8;color:#8a70c0}.cbo:hover{background:#c8b8f0;color:#fff}
+        .cbody{padding:4px 12px 8px}
+        .cprev{color:#8a8a9c;font-size:calc(var(--fs) - 1pt);line-height:1.5;max-height:52px;overflow:hidden;position:relative;white-space:pre-wrap;word-break:break-word}
+        .cprev::after{content:'';position:absolute;bottom:0;left:0;right:0;height:24px;background:linear-gradient(transparent,#fff)}
+        .cfoot{padding:5px 12px;border-top:1px solid #f2f2f6;display:flex;justify-content:space-between;font-size:calc(var(--fs) - 2pt);color:#b0b0c0}
+
+        .mo{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(100,100,120,.25);backdrop-filter:blur(2px);z-index:1000;justify-content:center;align-items:center}
+        .mo.active{display:flex}
+        .md{background:#fff;border:1px solid #e4e4ee;border-radius:10px;width:90%;max-width:560px;max-height:88vh;overflow-y:auto;animation:mIn .2s ease;box-shadow:0 8px 32px rgba(0,0,0,.08)}
+        @keyframes mIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+        .mh{padding:14px 16px;border-bottom:1px solid #f0f0f6;display:flex;justify-content:space-between;align-items:center}
+        .mh h2{font-size:calc(var(--fs) + 1pt);font-weight:800;color:#4a4a5a}
+        .mx{width:24px;height:24px;border-radius:50%;border:none;background:#f0f0f6;color:#8888a0;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+        .mx:hover{background:#e88888;color:#fff}
+        .mb{padding:14px 16px}
+        .fg{margin-bottom:12px}
+        .fg label{display:block;margin-bottom:4px;font-size:calc(var(--fs) - 1pt);font-weight:700;color:#6a6a7a}
+        .fg input,.fg textarea,.fg select{width:100%;padding:7px 10px;border-radius:6px;border:1px solid #e0e0ea;background:#fafafc;color:#4a4a5a;font-size:calc(var(--fs) - .5pt);font-family:var(--ff);outline:none;transition:.2s}
+        .fg input:focus,.fg textarea:focus,.fg select:focus{border-color:#b8c6f0;background:#fff;box-shadow:0 0 0 2px rgba(184,198,240,.15)}
+        .fg textarea{min-height:160px;resize:vertical;line-height:1.6}
+        .mf{padding:10px 16px 14px;border-top:1px solid #f0f0f6;display:flex;justify-content:flex-end;gap:6px}
+        .mf button{padding:6px 18px;border:none;border-radius:6px;font-size:calc(var(--fs) - 1pt);font-weight:700;font-family:var(--ff);cursor:pointer;transition:.2s}
+        .btnC{background:#f0f0f6;color:#8888a0}.btnC:hover{background:#e4e4ee}
+        .btnS{background:#b8c6f0;color:#fff}.btnS:hover{background:#9aaceb}
+        .btnG{background:#2d333b;color:#f0f6fc}.btnG:hover{background:#444c56}
+        .btnD{background:#da3633;color:#fff}.btnD:hover{background:#b62324}
+        .btnR{background:#88d4a8;color:#fff}.btnR:hover{background:#6abb8a}
+
+        .vc{background:#fafafc;border:1px solid #ececf2;border-radius:6px;padding:12px;white-space:pre-wrap;word-break:break-word;line-height:1.7;font-size:calc(var(--fs) - .5pt);color:#4a4a5a;max-height:320px;overflow-y:auto}
+        .vcb{margin-top:10px;width:100%;padding:8px;border:none;border-radius:6px;background:#b8c6f0;color:#fff;font-size:calc(var(--fs) - .5pt);font-weight:700;font-family:var(--ff);cursor:pointer}
+        .vcb:hover{background:#9aaceb}
+
+        .sr{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f6f6fa}
+        .sr:last-child{border-bottom:none}
+        .sl{font-size:calc(var(--fs) - .5pt);color:#4a4a5a;font-weight:700}
+        .sd{font-size:calc(var(--fs) - 1.5pt);color:#a0a0b4;margin-top:2px}
+        .tgl{position:relative;width:36px;height:20px;cursor:pointer;flex-shrink:0}
+        .tgl input{opacity:0;width:0;height:0}
+        .tgs{position:absolute;top:0;left:0;right:0;bottom:0;background:#ddd;border-radius:20px;transition:.2s}
+        .tgs::before{content:'';position:absolute;height:14px;width:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+        .tgl input:checked+.tgs{background:#88d4a8}
+        .tgl input:checked+.tgs::before{transform:translateX(16px)}
+        .ssel{padding:4px 8px;border:1px solid #e0e0ea;border-radius:5px;font-size:calc(var(--fs) - 1pt);font-family:var(--ff);color:#4a4a5a;background:#fafafc;outline:none;flex-shrink:0}
+
+        .fpd{font-size:calc(var(--fs) - 1.5pt);padding:6px 10px;background:#fef5e0;border:1px solid #f0dca8;border-radius:6px;color:#9a8450;margin-bottom:8px;display:flex;align-items:center;gap:6px;justify-content:space-between}
+        .fpd .pth{font-weight:700;word-break:break-all}
+        .fsm{padding:3px 10px;border:none;border-radius:4px;font-size:calc(var(--fs) - 2pt);font-weight:700;font-family:var(--ff);cursor:pointer;background:#f0dca8;color:#7a6a38}
+        .fsm:hover{background:#e8d090}
+        .fsm.dng{background:#fce8e8;color:#d48888}.fsm.dng:hover{background:#e88888;color:#fff}
+
+        .obsd{font-size:calc(var(--fs) - 1.5pt);padding:6px 10px;background:#e8e0f8;border:1px solid #d0c0f0;border-radius:6px;color:#8a70c0;margin-bottom:8px;display:flex;align-items:center;gap:6px;justify-content:space-between}
+
+        .gistd{font-size:calc(var(--fs) - 1.5pt);padding:6px 10px;background:#e0e8f0;border:1px solid #c0d0e0;border-radius:6px;color:#2d333b;margin-bottom:8px;display:flex;align-items:center;gap:6px;justify-content:space-between}
+
+        .tbar{display:flex;gap:0;border-bottom:2px solid #eef0fa;margin-bottom:12px;flex-wrap:wrap}
+        .tbtn{padding:8px 14px;border:none;background:none;font-family:var(--ff);font-size:calc(var(--fs) - .5pt);font-weight:700;color:#a0a0b4;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:.15s}
+        .tbtn:hover{color:#6c7bbf}.tbtn.active{color:#6c7bbf;border-bottom-color:#6c7bbf}
+        .tcont{display:none}.tcont.active{display:block}
+
+        .fpv{margin-top:8px;padding:10px;background:#fafafc;border:1px solid #ececf2;border-radius:6px;line-height:1.6;color:#4a4a5a}
+        .info{font-size:calc(var(--fs) - 1.5pt);color:#8888a0;margin-top:10px;padding:8px 10px;background:#fafafc;border:1px solid #ececf2;border-radius:6px;line-height:1.6}
+        .info strong{color:#6c7bbf}
+        .info a{color:#6c7bbf}
+
+        .warn-box{font-size:calc(var(--fs) - 1.5pt);padding:8px 10px;background:#fff8e0;border:1px solid #f0dca8;border-radius:6px;color:#8a7030;margin-top:8px;line-height:1.6}
+        .warn-box strong{color:#c8a020}
+
+        .restore-zone{margin-top:10px;padding:20px;background:#fafafc;border:2px dashed #d0d0e0;border-radius:8px;text-align:center;cursor:pointer;transition:.2s}
+        .restore-zone:hover{border-color:#b8c6f0;background:#f0f2fa}
+        .restore-zone.dragover{border-color:#6c7bbf;background:#eef0fa}
+        .restore-zone .rz-icon{font-size:28px;margin-bottom:6px}
+        .restore-zone .rz-title{font-size:calc(var(--fs));font-weight:700;color:#4a4a5a}
+        .restore-zone .rz-desc{font-size:calc(var(--fs) - 1.5pt);color:#a0a0b4;margin-top:4px}
+
+        .step-box{margin-top:10px;padding:10px;background:#f0f8f0;border:1px solid #c8e8c8;border-radius:6px}
+        .step-box h4{font-size:calc(var(--fs));color:#4a8a4a;margin-bottom:8px}
+        .step-item{display:flex;gap:8px;align-items:flex-start;padding:4px 0;font-size:calc(var(--fs) - 1pt);color:#4a6a4a;line-height:1.5}
+        .step-num{width:20px;height:20px;border-radius:50%;background:#88d4a8;color:#fff;font-size:8pt;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+        .gist-sync-status{margin:8px 0;padding:8px 12px;border-radius:6px;font-size:calc(var(--fs) - 1pt);font-weight:700;display:none;align-items:center;gap:6px}
+        .gist-sync-status.show{display:flex}
+        .gss-ok{background:#e6f5ee;color:#4a8a4a;border:1px solid #c8e8c8}
+        .gss-err{background:#fce8e8;color:#d44;border:1px solid #f0c8c8}
+        .gss-loading{background:#e8f0fa;color:#4a6a9a;border:1px solid #c0d8f0}
+
+        .csi{display:flex;align-items:center;gap:8px;padding:6px 10px;margin-bottom:4px;background:#fafafc;border:1px solid #ececf2;border-radius:6px;cursor:grab;transition:.15s;font-size:calc(var(--fs) - .5pt)}
+        .csi:active{cursor:grabbing}
+        .csi.dragging{opacity:.3;background:#eef0fa}
+        .csi.dragover{border-color:#6c7bbf;background:#eef0fa}
+        .csi .gp{color:#c0c0d0;font-size:12px;flex-shrink:0}
+        .csi .cn{flex:1;font-weight:700;color:#4a4a5a}
+        .csi .cc{color:#a0a0b4;font-size:calc(var(--fs) - 1.5pt)}
+
+        .toast{position:fixed;bottom:20px;right:20px;padding:8px 16px;border-radius:7px;color:#fff;font-weight:700;font-size:calc(var(--fs) - 1pt);font-family:var(--ff);z-index:2000;animation:tin .25s ease,tout .25s ease 2s forwards;box-shadow:0 4px 16px rgba(0,0,0,.1);max-width:320px;word-break:break-word}
+        .ts{background:#88d4a8}.ti{background:#b8c6f0}.te{background:#e09090}.tw{background:#f0d87a;color:#5a4a20}
+        @keyframes tin{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+        @keyframes tout{from{opacity:1}to{opacity:0}}
+
+        .empty{text-align:center;padding:50px 20px;grid-column:1/-1}
+        .empty .ic{font-size:36px;margin-bottom:10px}
+        .empty h3{font-size:calc(var(--fs) + 1pt);color:#a0a0b4;margin-bottom:6px;font-weight:700}
+        .empty p{color:#b8b8c8;font-size:calc(var(--fs) - 1pt)}
+        .apiw{margin:10px 20px;padding:8px 14px;background:#fce8e8;border:1px solid #f0c8c8;border-radius:6px;font-size:calc(var(--fs) - 1.5pt);color:#d48888;display:none}
+
+        .conflict-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f0f0f6;font-size:calc(var(--fs) - 1pt)}
+        .conflict-row:last-child{border-bottom:none}
+        .conflict-label{color:#4a4a5a;font-weight:700}
+        .conflict-meta{color:#a0a0b4;font-size:calc(var(--fs) - 2pt)}
+
+        ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#d8d8e4;border-radius:2px}
+        #impF,#restoreF{display:none}
+        @media(max-width:640px){.header{padding:8px 12px;flex-direction:column;gap:8px}.grid{padding:8px 12px;grid-template-columns:1fr}.sbar,.fbar,.stbar{padding-left:12px;padding-right:12px}}
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>📋 프롬프트 매니저</h1>
+    <div class="hbtns">
+        <button class="hb hb5" onclick="pickFolder()">📂 백업위치</button>
+        <button class="hb hb6" onclick="pickObsFolder()">💎 Obsidian</button>
+        <button class="hb hb7" onclick="gistQuickSync()">🐙 Gist 동기화</button>
+        <button class="hb hb4" onclick="openSettings()">⚙️ 설정</button>
+        <button class="hb hb3" onclick="doImport()">📥 가져오기</button>
+        <button class="hb hb2" onclick="doExport()">📤 내보내기</button>
+        <button class="hb hb1" onclick="openAdd()">＋ 새 프롬프트</button>
+    </div>
+</div>
+<input type="file" id="impF" accept=".json,.txt">
+<input type="file" id="restoreF" accept=".json">
+<div class="apiw" id="apiW">⚠️ Chrome/Edge 최신 버전을 사용하세요 (폴더 자동저장 미지원)</div>
+
+<div class="sbar"><input type="text" id="sInput" placeholder="🔍 프롬프트 검색 (제목, 내용, 카테고리)" oninput="render()"></div>
+<div class="fbar" id="fBar"></div>
+<div class="stbar" id="stBar"></div>
+<div class="grid" id="grd"></div>
+
+<!-- 등록/수정 -->
+<div class="mo" id="mAdd">
+    <div class="md">
+        <div class="mh"><h2 id="mAddT">새 프롬프트 등록</h2><button class="mx" onclick="closeAdd()">✕</button></div>
+        <div class="mb">
+            <div class="fg"><label>프롬프트 이름</label><input type="text" id="pName" placeholder="예: GPT 코드리뷰"></div>
+            <div class="fg"><label>카테고리</label><input type="text" id="pCat" placeholder="예: 코딩, 글쓰기" list="catDL"><datalist id="catDL"></datalist></div>
+            <div class="fg"><label>프롬프트 내용</label><textarea id="pCont" placeholder="프롬프트 내용 입력..."></textarea></div>
+        </div>
+        <div class="mf"><button class="btnC" onclick="closeAdd()">취소</button><button class="btnS" onclick="saveP()">저장</button></div>
+    </div>
+</div>
+
+<!-- 보기 -->
+<div class="mo" id="mView">
+    <div class="md">
+        <div class="mh"><h2 id="mViewT">보기</h2><button class="mx" onclick="closeView()">✕</button></div>
+        <div class="mb">
+            <div class="vc" id="vCont"></div>
+            <button class="vcb" onclick="copyView()">📋 클립보드에 복사</button>
+        </div>
+    </div>
+</div>
+
+<!-- 설정 -->
+<div class="mo" id="mSet">
+    <div class="md" style="max-width:620px">
+        <div class="mh"><h2>⚙️ 설정</h2><button class="mx" onclick="closeSettings()">✕</button></div>
+        <div class="mb">
+            <div class="tbar">
+                <button class="tbtn active" data-tab="tFont" onclick="swTab(this)">🔤 폰트</button>
+                <button class="tbtn" data-tab="tBackup" onclick="swTab(this)">💾 백업</button>
+                <button class="tbtn" data-tab="tRestore" onclick="swTab(this)">📦 복원</button>
+                <button class="tbtn" data-tab="tObs" onclick="swTab(this)">💎 Obsidian</button>
+                <button class="tbtn" data-tab="tGist" onclick="swTab(this)">🐙 GitHub Gist</button>
+                <button class="tbtn" data-tab="tCatOrd" onclick="swTab(this)">🏷️ 카테고리</button>
+            </div>
+
+            <!-- 폰트 -->
+            <div class="tcont active" id="tFont">
+                <div class="sr">
+                    <div><div class="sl">폰트</div></div>
+                    <select class="ssel" id="sFF" onchange="pvFont()" style="width:180px">
+                        <option value="'Nanum Gothic',sans-serif">나눔고딕</option>
+                        <option value="'Nanum Myeongjo',serif">나눔명조</option>
+                        <option value="'Noto Sans KR',sans-serif">Noto Sans KR</option>
+                        <option value="'IBM Plex Sans KR',sans-serif">IBM Plex Sans KR</option>
+                        <option value="'Gothic A1',sans-serif">Gothic A1</option>
+                        <option value="'Malgun Gothic',sans-serif">맑은 고딕</option>
+                        <option value="monospace">모노스페이스</option>
+                    </select>
+                </div>
+                <div class="sr">
+                    <div><div class="sl">글자 크기</div><div class="sd" id="fsLbl">9pt</div></div>
+                    <div style="display:flex;align-items:center;gap:6px">
+                        <input type="range" id="sFS" min="7" max="14" step="0.5" value="9" oninput="pvFont()" style="width:100px;accent-color:#b8c6f0">
+                        <span id="fsVal" style="font-size:8pt;color:#8888a0;min-width:28px">9pt</span>
+                    </div>
+                </div>
+                <div class="fpv" id="fPrev">가나다라마바사 ABCDEFG 1234567890<br>프롬프트 매니저 미리보기</div>
+                <div style="margin-top:8px;text-align:right"><button class="btnS" onclick="applyFont()">적용</button></div>
+            </div>
+
+            <!-- 백업 -->
+            <div class="tcont" id="tBackup">
+                <div id="folderSt"></div>
+                <div class="sr">
+                    <div><div class="sl">💾 변경 시 자동 백업</div><div class="sd">추가/수정/삭제 시 폴더에 저장</div></div>
+                    <label class="tgl"><input type="checkbox" id="sBkChg" onchange="saveBkSet()"><span class="tgs"></span></label>
+                </div>
+                <div class="sr">
+                    <div><div class="sl">⏰ 주기적 백업</div></div>
+                    <select class="ssel" id="sBkInt" onchange="saveBkSet()">
+                        <option value="0">사용 안 함</option><option value="1">1분</option><option value="5">5분</option><option value="10">10분</option><option value="30">30분</option><option value="60">1시간</option>
+                    </select>
+                </div>
+                <div class="sr">
+                    <div><div class="sl">🚪 종료 시 경고</div></div>
+                    <label class="tgl"><input type="checkbox" id="sWarn" onchange="saveBkSet()"><span class="tgs"></span></label>
+                </div>
+                <div class="sr">
+                    <div><div class="sl">🔄 최대 백업 수</div></div>
+                    <select class="ssel" id="sMaxBk" onchange="saveBkSet()">
+                        <option value="0">무제한</option><option value="5">5개</option><option value="10">10개</option><option value="20">20개</option><option value="50">50개</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 복원 -->
+            <div class="tcont" id="tRestore">
+                <div class="step-box">
+                    <h4>📦 로컬 백업 복원 가이드</h4>
+                    <div class="step-item"><span class="step-num">1</span><span>이전에 <strong>"📤 내보내기"</strong> 또는 자동 백업으로 생성된 <code>.json</code> 파일을 준비합니다.</span></div>
+                    <div class="step-item"><span class="step-num">2</span><span>아래 영역에 파일을 드래그하거나 클릭하여 파일을 선택합니다.</span></div>
+                    <div class="step-item"><span class="step-num">3</span><span><strong>"덮어쓰기"</strong> 또는 <strong>"병합"</strong> 모드를 선택하여 적용합니다.</span></div>
+                </div>
+
+                <div class="sr" style="margin-top:12px">
+                    <div><div class="sl">복원 모드</div><div class="sd">기존 데이터를 어떻게 처리할지 선택</div></div>
+                    <select class="ssel" id="restoreMode">
+                        <option value="merge">🔀 병합 (중복 제외, 기존 유지)</option>
+                        <option value="overwrite">🔄 덮어쓰기 (전체 교체)</option>
+                    </select>
+                </div>
+
+                <div class="restore-zone" id="restoreZone" onclick="$('restoreF').click()">
+                    <div class="rz-icon">📂</div>
+                    <div class="rz-title">백업 파일을 여기에 드래그하거나 클릭</div>
+                    <div class="rz-desc">.json 파일만 지원 (prompt-backup-*.json)</div>
+                </div>
+
+                <div id="restorePreview" style="display:none;margin-top:10px"></div>
+
+                <div class="warn-box">
+                    <strong>⚠️ 참고사항</strong><br>
+                    • <strong>병합 모드:</strong> 기존 프롬프트를 유지하고, 백업에만 있는 프롬프트를 추가합니다.<br>
+                    • <strong>덮어쓰기 모드:</strong> 기존 데이터를 <u>완전히 삭제</u>하고 백업 데이터로 교체합니다.<br>
+                    • 복원 전 현재 데이터를 <strong>"📤 내보내기"</strong>로 먼저 백업하는 것을 권장합니다.<br>
+                    • 백업 폴더가 설정된 경우, 해당 폴더의 <code>prompt-backup-*.json</code> 파일도 사용 가능합니다.
+                </div>
+
+                <div id="folderBkList" style="margin-top:10px"></div>
+            </div>
+
+            <!-- Obsidian -->
+            <div class="tcont" id="tObs">
+                <div id="obsStatus"></div>
+                <div class="sr">
+                    <div><div class="sl">자동 동기화</div><div class="sd">프롬프트 저장 시 Obsidian 볼트에 .md 자동 생성</div></div>
+                    <label class="tgl"><input type="checkbox" id="sObsSync" onchange="saveObsSet()"><span class="tgs"></span></label>
+                </div>
+                <div class="sr">
+                    <div><div class="sl">카테고리별 폴더</div><div class="sd">카테고리 이름으로 하위 폴더 생성</div></div>
+                    <label class="tgl"><input type="checkbox" id="sObsCatFolder" onchange="saveObsSet()"><span class="tgs"></span></label>
+                </div>
+                <div class="sr">
+                    <div><div class="sl">YAML Front Matter</div><div class="sd">Obsidian 메타데이터 (태그, 날짜) 포함</div></div>
+                    <label class="tgl"><input type="checkbox" id="sObsYaml" onchange="saveObsSet()"><span class="tgs"></span></label>
+                </div>
+                <div class="info">
+                    <strong>사용법:</strong><br>
+                    1. 상단 <strong>💎 Obsidian</strong> 버튼으로 볼트 내 폴더 선택<br>
+                    2. "자동 동기화" 활성화<br>
+                    3. 프롬프트 저장 시 .md 파일 자동 생성<br>
+                    4. Obsidian에서 바로 확인 가능!
+                </div>
+                <div style="margin-top:10px;text-align:right">
+                    <button class="btnS" onclick="syncAllToObs()">전체 동기화</button>
+                </div>
+            </div>
+
+            <!-- GitHub Gist -->
+            <div class="tcont" id="tGist">
+                <div id="gistStatus"></div>
+                <div class="gist-sync-status" id="gistSyncStatus"></div>
+
+                <div class="fg" style="margin-top:8px">
+                    <label>🔑 GitHub Personal Access Token</label>
+                    <input type="password" id="gistToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" onchange="saveGistSet()">
+                    <div style="font-size:calc(var(--fs) - 2pt);color:#a0a0b4;margin-top:3px">
+                        gist scope 권한 필요 • <a href="https://github.com/settings/tokens/new?scopes=gist&description=Prompt+Manager" target="_blank" style="color:#6c7bbf">토큰 생성 →</a>
+                    </div>
+                </div>
+
+                <div class="fg">
+                    <label>📋 Gist ID (기존 Gist 사용 시)</label>
+                    <input type="text" id="gistId" placeholder="비워두면 새 Gist 자동 생성" onchange="saveGistSet()">
+                    <div style="font-size:calc(var(--fs) - 2pt);color:#a0a0b4;margin-top:3px">
+                        예: https://gist.github.com/user/<strong>abcdef1234567890</strong> 에서 굵은 부분
+                    </div>
+                </div>
+
+                <div class="sr">
+                    <div><div class="sl">🔄 자동 동기화</div><div class="sd">프롬프트 변경 시 Gist에 자동 Push</div></div>
+                    <label class="tgl"><input type="checkbox" id="sGistAutoSync" onchange="saveGistSet()"><span class="tgs"></span></label>
+                </div>
+
+                <div class="sr">
+                    <div><div class="sl">🔒 비밀 Gist</div><div class="sd">새 Gist 생성 시 비밀(private)으로 설정</div></div>
+                    <label class="tgl"><input type="checkbox" id="sGistPrivate" onchange="saveGistSet()" checked><span class="tgs"></span></label>
+                </div>
+
+                <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap">
+                    <button class="btnG" onclick="gistPush()" style="flex:1;min-width:120px;padding:8px">⬆️ Push (업로드)</button>
+                    <button class="btnR" onclick="gistPull()" style="flex:1;min-width:120px;padding:8px">⬇️ Pull (다운로드)</button>
+                    <button class="btnC" onclick="gistTest()" style="padding:8px 14px">🔍 연결 테스트</button>
+                </div>
+
+                <div class="info" style="margin-top:12px">
+                    <strong>🐙 GitHub Gist 동기화 안내:</strong><br><br>
+                    <strong>① 토큰 발급:</strong><br>
+                    GitHub → Settings → Developer settings → Personal access tokens → <strong>Tokens (classic)</strong><br>
+                    → <strong>gist</strong> 체크 → Generate token<br><br>
+                    <strong>② 사용 방법:</strong><br>
+                    • <strong>Push</strong>: 현재 프롬프트를 Gist에 업로드<br>
+                    • <strong>Pull</strong>: Gist에서 프롬프트를 다운로드 (병합)<br>
+                    • <strong>자동 동기화</strong>: 프롬프트 추가/수정/삭제 시 자동 Push<br><br>
+                    <strong>③ 다른 기기에서:</strong><br>
+                    같은 Gist ID + 토큰 입력 → Pull → 동일 데이터 복원!<br><br>
+                    <strong>④ Gist URL:</strong><br>
+                    <span id="gistUrl" style="word-break:break-all;color:#6c7bbf">설정 후 표시됩니다</span>
+                </div>
+            </div>
+
+            <!-- 카테고리 순서 -->
+            <div class="tcont" id="tCatOrd">
+                <div style="font-size:calc(var(--fs) - 1pt);color:#a0a0b4;margin-bottom:8px">⠿ 를 드래그하여 순서 변경</div>
+                <div id="catList"></div>
+                <div style="margin-top:8px;text-align:right"><button class="btnS" onclick="saveCatOrd();closeSettings()">적용</button></div>
+            </div>
+        </div>
+        <div class="mf"><button class="btnC" onclick="closeSettings()">닫기</button></div>
+    </div>
+</div>
+
+<script>
+// ========== 전역 ==========
+let P=[],editId=null,aFilter='전체',bkTimer=null,dirH=null,obsDirH=null,catOrd=[],pOrd=[];
+let gistPushing=false;
+const DBN='PmDB2',DBS='h';
+const GIST_FN='prompt-manager-data.json';
+
+// ========== IndexedDB ==========
+function odb(){return new Promise((r,j)=>{const q=indexedDB.open(DBN,1);q.onupgradeneeded=()=>q.result.createObjectStore(DBS);q.onsuccess=()=>r(q.result);q.onerror=()=>j(q.error)})}
+async function sdb(k,v){const db=await odb();const tx=db.transaction(DBS,'readwrite');tx.objectStore(DBS).put(v,k);return new Promise(r=>{tx.oncomplete=r})}
+async function gdb(k){const db=await odb();const tx=db.transaction(DBS,'readonly');const q=tx.objectStore(DBS).get(k);return new Promise(r=>{q.onsuccess=()=>r(q.result||null);q.onerror=()=>r(null)})}
+async function ddb(k){const db=await odb();const tx=db.transaction(DBS,'readwrite');tx.objectStore(DBS).delete(k)}
+
+// ========== FS API ==========
+function hasFS(){return 'showDirectoryPicker' in window}
+
+async function pickFolder(){
+    if(!hasFS()){toast('Chrome/Edge 필요','e');return}
+    try{dirH=await window.showDirectoryPicker({mode:'readwrite'});await sdb('bkDir',dirH);toast('📂 백업: '+dirH.name,'s');updFolderUI();renderSt()}catch(e){if(e.name!=='AbortError')toast('폴더 선택 실패','e')}
+}
+async function pickObsFolder(){
+    if(!hasFS()){toast('Chrome/Edge 필요','e');return}
+    try{obsDirH=await window.showDirectoryPicker({mode:'readwrite'});await sdb('obsDir',obsDirH);toast('💎 Obsidian: '+obsDirH.name,'s');updObsUI();renderSt()}catch(e){if(e.name!=='AbortError')toast('폴더 선택 실패','e')}
+}
+
+async function restoreHandles(){
+    if(!hasFS())return;
+    try{
+        const bh=await gdb('bkDir');
+        if(bh){let p=await bh.queryPermission({mode:'readwrite'});if(p!=='granted')p=await bh.requestPermission({mode:'readwrite'});if(p==='granted')dirH=bh}
+        const oh=await gdb('obsDir');
+        if(oh){let p=await oh.queryPermission({mode:'readwrite'});if(p!=='granted')p=await oh.requestPermission({mode:'readwrite'});if(p==='granted')obsDirH=oh}
+    }catch(e){}
+}
+
+async function disconnBk(){dirH=null;await ddb('bkDir');toast('백업 폴더 해제','i');updFolderUI();renderSt()}
+async function disconnObs(){obsDirH=null;await ddb('obsDir');toast('Obsidian 폴더 해제','i');updObsUI();renderSt()}
+
+async function wf(handle,name,content){
+    if(!handle)return false;
+    try{const p=await handle.queryPermission({mode:'readwrite'});if(p!=='granted'){const r=await handle.requestPermission({mode:'readwrite'});if(r!=='granted')return false}const fh=await handle.getFileHandle(name,{create:true});const w=await fh.createWritable();await w.write(content);await w.close();return true}catch(e){return false}
+}
+async function getSubDir(parent,name){
+    try{return await parent.getDirectoryHandle(name,{create:true})}catch(e){return null}
+}
+async function df(handle,name){if(!handle)return;try{await handle.removeEntry(name)}catch(e){}}
+async function lbk(){if(!dirH)return[];const f=[];try{for await(const e of dirH.values()){if(e.kind==='file'&&e.name.startsWith('prompt-backup-')&&e.name.endsWith('.json'))f.push(e.name)}}catch(e){}return f.sort()}
+async function readBkFile(name){
+    if(!dirH)return null;
+    try{
+        const fh=await dirH.getFileHandle(name);
+        const file=await fh.getFile();
+        const txt=await file.text();
+        return JSON.parse(txt);
+    }catch(e){return null}
+}
+
+// ========== Obsidian 동기화 ==========
+function safeName(n){return n.replace(/[\\/:*?"<>|#^[\]]/g,'_').trim()}
+
+function buildMd(p){
+    const s=ls();
+    let md='';
+    if(s.obsYaml){
+        md+='---\n';
+        md+='title: "'+p.name+'"\n';
+        if(p.category)md+='tags: [prompt, '+p.category+']\n';
+        else md+='tags: [prompt]\n';
+        md+='created: '+p.createdAt+'\n';
+        md+='updated: '+(p.updatedAt||p.createdAt)+'\n';
+        md+='---\n\n';
+    }
+    md+=p.content;
+    return md;
+}
+
+async function syncOneToObs(p){
+    if(!obsDirH)return false;
+    const s=ls();
+    let targetDir=obsDirH;
+    if(s.obsCatFolder&&p.category){
+        const sub=await getSubDir(obsDirH,safeName(p.category));
+        if(sub)targetDir=sub;
+    }
+    const fn=safeName(p.name)+'.md';
+    return await wf(targetDir,fn,buildMd(p));
+}
+
+async function syncAllToObs(){
+    if(!obsDirH){toast('먼저 💎 Obsidian 폴더를 선택하세요','w');return}
+    let ok=0;
+    for(const p of P){
+        const r=await syncOneToObs(p);
+        if(r)ok++;
+    }
+    toast(ok+'/'+P.length+'개 Obsidian 동기화 완료','s');
+}
+
+async function deleteObsMd(p){
+    if(!obsDirH)return;
+    const s=ls();
+    let targetDir=obsDirH;
+    if(s.obsCatFolder&&p.category){
+        try{targetDir=await obsDirH.getDirectoryHandle(safeName(p.category))}catch(e){return}
+    }
+    await df(targetDir,safeName(p.name)+'.md');
+}
+
+// ================================================================
+// ========== ★★★ 핵심 수정: 스마트 병합 엔진 ★★★ ==========
+// ================================================================
+
+/**
+ * 이름 정규화 - 비교용 (공백/대소문자 무시)
+ */
+function normName(n){
+    return (n||'').trim().toLowerCase().replace(/\s+/g,' ');
+}
+
+/**
+ * 로컬 프롬프트에서 원격 아이템과 매칭되는 것을 찾기
+ * 우선순위: 1) 같은 ID  2) 같은 이름(정규화)
+ */
+function findMatch(item, localList){
+    // 1순위: ID 매칭
+    const byId = localList.find(p => p.id === item.id);
+    if(byId) return { match: byId, type: 'id' };
+
+    // 2순위: 이름 매칭 (정규화)
+    const nName = normName(item.name);
+    const byName = localList.find(p => normName(p.name) === nName);
+    if(byName) return { match: byName, type: 'name' };
+
+    return null;
+}
+
+/**
+ * 두 프롬프트 중 어느 쪽이 더 최신인지 판단
+ * 반환: 'remote' | 'local' | 'same'
+ */
+function compareVersion(local, remote){
+    const lu = local.updatedAt ? new Date(local.updatedAt).getTime() : 0;
+    const ru = remote.updatedAt ? new Date(remote.updatedAt).getTime() : 0;
+
+    // 내용이 완전히 같으면 'same'
+    if(local.content === remote.content && 
+       normName(local.name) === normName(remote.name) && 
+       (local.category||'') === (remote.category||'')){
+        return 'same';
+    }
+
+    if(ru > lu) return 'remote';
+    if(lu > ru) return 'local';
+
+    // 시간이 같은데 내용이 다르면 → 내용이 더 긴 쪽 우선 (최소한의 휴리스틱)
+    if(remote.content.length > local.content.length) return 'remote';
+    return 'local';
+}
+
+/**
+ * ★ 스마트 병합 - Gist Pull / 파일 복원 공용
+ * @param {Array} remoteArr - 원격/백업 프롬프트 배열
+ * @param {Object} options - { remoteCatOrd, remotePOrd }
+ * @returns {Object} { added, updated, skipped, conflicts }
+ */
+function smartMerge(remoteArr, options = {}){
+    let added = 0, updated = 0, skipped = 0;
+    const conflicts = [];
+
+    remoteArr.forEach(item => {
+        if(!item.name || !item.content) return;
+
+        const result = findMatch(item, P);
+
+        if(result){
+            const { match, type } = result;
+            const ver = compareVersion(match, item);
+
+            if(ver === 'same'){
+                // 완전 동일 → ID 통일만 하고 스킵
+                if(type === 'name' && match.id !== item.id){
+                    // 이름으로 매칭된 경우, ID를 원격 것으로 통일 (기기 간 ID 일관성)
+                    const oldId = match.id;
+                    match.id = item.id;
+                    // pOrd에서도 교체
+                    const oi = pOrd.indexOf(oldId);
+                    if(oi !== -1) pOrd[oi] = item.id;
+                }
+                skipped++;
+            } else if(ver === 'remote'){
+                // 원격이 최신 → 업데이트
+                const oldId = match.id;
+                match.name = item.name;
+                match.category = item.category || '';
+                match.content = item.content;
+                match.updatedAt = item.updatedAt;
+                // ID 통일
+                if(match.id !== item.id){
+                    match.id = item.id;
+                    const oi = pOrd.indexOf(oldId);
+                    if(oi !== -1) pOrd[oi] = item.id;
+                }
+                updated++;
+            } else {
+                // 로컬이 최신 → 로컬 유지, ID만 통일
+                if(type === 'name' && match.id !== item.id){
+                    const oldId = match.id;
+                    match.id = item.id;
+                    const oi = pOrd.indexOf(oldId);
+                    if(oi !== -1) pOrd[oi] = item.id;
+                }
+                skipped++;
+            }
+        } else {
+            // 매칭 없음 → 새로 추가
+            P.push({
+                id: item.id || gid(),
+                name: item.name,
+                category: item.category || '',
+                content: item.content,
+                createdAt: item.createdAt || new Date().toISOString(),
+                updatedAt: item.updatedAt || new Date().toISOString()
+            });
+            added++;
+        }
+    });
+
+    // ★ 순서 병합
+    if(options.remoteCatOrd){
+        catOrd = mergeOrders(catOrd, options.remoteCatOrd);
+        saveCO();
+    }
+    if(options.remotePOrd){
+        pOrd = mergeOrders(pOrd, options.remotePOrd);
+        // pOrd에 로컬에만 있는 ID도 포함시키기
+        P.forEach(p => {
+            if(!pOrd.includes(p.id)) pOrd.push(p.id);
+        });
+        savePO();
+    }
+
+    return { added, updated, skipped, conflicts };
+}
+
+/**
+ * ★ 순서 배열 병합
+ * 로컬 순서를 기본으로, 원격에만 있는 항목을 적절한 위치에 삽입
+ */
+function mergeOrders(localOrd, remoteOrd){
+    if(!localOrd || !localOrd.length) return [...remoteOrd];
+    if(!remoteOrd || !remoteOrd.length) return [...localOrd];
+
+    const merged = [...localOrd];
+
+    remoteOrd.forEach((item, ri) => {
+        if(!merged.includes(item)){
+            // 원격에서의 이전 항목을 찾아서 그 뒤에 삽입
+            let insertAt = merged.length; // 기본: 끝에 추가
+            for(let j = ri - 1; j >= 0; j--){
+                const prevItem = remoteOrd[j];
+                const prevIdx = merged.indexOf(prevItem);
+                if(prevIdx !== -1){
+                    insertAt = prevIdx + 1;
+                    break;
+                }
+            }
+            merged.splice(insertAt, 0, item);
+        }
+    });
+
+    return merged;
+}
+
+// ================================================================
+// ========== GitHub Gist API ==========
+// ================================================================
+
+function gistHeaders(){
+    const s=ls();
+    return {
+        'Authorization':'token '+s.gistToken,
+        'Accept':'application/vnd.github.v3+json',
+        'Content-Type':'application/json'
+    };
+}
+
+function buildGistData(){
+    return JSON.stringify({
+        prompts:P,
+        catOrd:catOrd,
+        pOrd:pOrd,
+        exportedAt:new Date().toISOString(),
+        version:'2.0'
+    },null,2);
+}
+
+function showGistSyncStatus(msg,type){
+    const el=$('gistSyncStatus');
+    el.className='gist-sync-status show gss-'+type;
+    el.textContent=msg;
+    if(type!=='loading')setTimeout(()=>el.classList.remove('show'),4000);
+}
+
+async function gistTest(){
+    saveGistSet();
+    const s=ls();
+    if(!s.gistToken){toast('GitHub 토큰을 입력하세요','e');return}
+    showGistSyncStatus('🔍 연결 테스트 중...','loading');
+    try{
+        const res=await fetch('https://api.github.com/user',{headers:gistHeaders()});
+        if(res.ok){
+            const u=await res.json();
+            showGistSyncStatus('✅ 연결 성공! ('+u.login+')','ok');
+            toast('GitHub 연결 성공: '+u.login,'s');
+        }else{
+            const d=await res.json();
+            showGistSyncStatus('❌ 인증 실패: '+d.message,'err');
+            toast('인증 실패','e');
+        }
+    }catch(e){
+        showGistSyncStatus('❌ 네트워크 오류','err');
+        toast('네트워크 오류','e');
+    }
+}
+
+async function gistPush(){
+    const s=ls();
+    if(!s.gistToken){toast('GitHub 토큰을 입력하세요','e');return}
+    if(!P.length){toast('저장할 프롬프트가 없습니다','e');return}
+    if(gistPushing)return;
+    gistPushing=true;
+    showGistSyncStatus('⬆️ Push 중...','loading');
+
+    try{
+        const data=buildGistData();
+        const body={
+            description:'📋 프롬프트 매니저 백업 ('+new Date().toLocaleString('ko-KR')+')',
+            public:!s.gistPrivate,
+            files:{}
+        };
+        body.files[GIST_FN]={content:data};
+
+        let res;
+        if(s.gistId){
+            res=await fetch('https://api.github.com/gists/'+s.gistId,{
+                method:'PATCH',
+                headers:gistHeaders(),
+                body:JSON.stringify(body)
+            });
+        }else{
+            res=await fetch('https://api.github.com/gists',{
+                method:'POST',
+                headers:gistHeaders(),
+                body:JSON.stringify(body)
+            });
+        }
+
+        if(res.ok){
+            const d=await res.json();
+            if(!s.gistId||d.id!==s.gistId){
+                s.gistId=d.id;
+                $('gistId').value=d.id;
+                ss(s);
+            }
+            s.gistLastSync=new Date().toISOString();
+            ss(s);
+            updGistUI();
+            showGistSyncStatus('✅ Push 완료! ('+P.length+'개 프롬프트)','ok');
+            toast('🐙 Gist Push 완료','s');
+        }else{
+            const d=await res.json();
+            showGistSyncStatus('❌ Push 실패: '+d.message,'err');
+            toast('Push 실패: '+d.message,'e');
+        }
+    }catch(e){
+        showGistSyncStatus('❌ 네트워크 오류','err');
+        toast('Push 오류','e');
+    }finally{
+        gistPushing=false;
+    }
+}
+
+// ★★★ 수정된 gistPull - smartMerge 사용 ★★★
+async function gistPull(){
+    const s=ls();
+    if(!s.gistToken){toast('GitHub 토큰을 입력하세요','e');return}
+    if(!s.gistId){toast('Gist ID를 입력하세요','e');return}
+    showGistSyncStatus('⬇️ Pull 중...','loading');
+
+    try{
+        const res=await fetch('https://api.github.com/gists/'+s.gistId,{
+            headers:gistHeaders()
+        });
+        if(!res.ok){
+            const d=await res.json();
+            showGistSyncStatus('❌ Pull 실패: '+d.message,'err');
+            toast('Pull 실패','e');
+            return;
+        }
+        const d=await res.json();
+        if(!d.files||!d.files[GIST_FN]){
+            showGistSyncStatus('❌ Gist에 데이터 파일이 없습니다','err');
+            toast('데이터 파일 없음','e');
+            return;
+        }
+        const raw=JSON.parse(d.files[GIST_FN].content);
+        const arr=raw.prompts||[];
+
+        // ★ 스마트 병합 사용
+        const result = smartMerge(arr, {
+            remoteCatOrd: raw.catOrd,
+            remotePOrd: raw.pOrd
+        });
+
+        await saveP2(true); // Gist push 방지
+        render();
+        s.gistLastSync=new Date().toISOString();
+        ss(s);
+        showGistSyncStatus('✅ Pull 완료! (추가:'+result.added+', 업데이트:'+result.updated+', 동일:'+result.skipped+')','ok');
+        toast('🐙 Pull 완료 (+'+result.added+' /↑'+result.updated+' /='+result.skipped+')','s');
+    }catch(e){
+        showGistSyncStatus('❌ Pull 오류: '+e.message,'err');
+        toast('Pull 오류','e');
+    }
+}
+
+async function gistAutoSync(){
+    const s=ls();
+    if(!s.gistAutoSync||!s.gistToken||!P.length)return;
+    await gistPush();
+}
+
+function gistQuickSync(){
+    const s=ls();
+    if(!s.gistToken){openSettings();setTimeout(()=>{document.querySelector('[data-tab="tGist"]').click()},100);toast('GitHub 토큰을 설정하세요','w');return}
+    gistPush();
+}
+
+function updGistUI(){
+    const s=ls();
+    const el=$('gistStatus');
+    if(!el)return;
+    if(s.gistId){
+        const url='https://gist.github.com/'+s.gistId;
+        el.innerHTML='<div class="gistd"><span>🐙 Gist: <a href="'+url+'" target="_blank" style="color:#2d333b;font-weight:700">'+s.gistId.substring(0,16)+'...</a></span><span style="font-size:7pt;color:#8888a0">마지막: '+(s.gistLastSync?fmtD(s.gistLastSync):'없음')+'</span></div>';
+        const urlEl=$('gistUrl');
+        if(urlEl)urlEl.innerHTML='<a href="'+url+'" target="_blank">'+url+'</a>';
+    }else{
+        el.innerHTML='';
+        const urlEl=$('gistUrl');
+        if(urlEl)urlEl.textContent='설정 후 표시됩니다';
+    }
+}
+
+function loadGistSet(){
+    const s=ls();
+    $('gistToken').value=s.gistToken||'';
+    $('gistId').value=s.gistId||'';
+    $('sGistAutoSync').checked=!!s.gistAutoSync;
+    $('sGistPrivate').checked=s.gistPrivate!==false;
+    updGistUI();
+}
+
+function saveGistSet(){
+    const s=ls();
+    s.gistToken=$('gistToken').value.trim();
+    s.gistId=$('gistId').value.trim();
+    s.gistAutoSync=$('sGistAutoSync').checked;
+    s.gistPrivate=$('sGistPrivate').checked;
+    ss(s);
+    updGistUI();
+}
+
+// ========== 로컬 백업 복원 ==========
+let restoreData=null;
+
+function initRestoreZone(){
+    const zone=$('restoreZone');
+    zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('dragover')});
+    zone.addEventListener('dragleave',()=>zone.classList.remove('dragover'));
+    zone.addEventListener('drop',e=>{
+        e.preventDefault();zone.classList.remove('dragover');
+        const f=e.dataTransfer.files[0];
+        if(f)handleRestoreFile(f);
+    });
+}
+
+$('restoreF').addEventListener('change',function(e){
+    const f=e.target.files[0];
+    if(f)handleRestoreFile(f);
+    e.target.value='';
+});
+
+function handleRestoreFile(f){
+    if(!f.name.endsWith('.json')){toast('JSON 파일만 지원합니다','e');return}
+    const r=new FileReader();
+    r.onload=function(ev){
+        try{
+            const raw=JSON.parse(ev.target.result);
+            const arr=Array.isArray(raw)?raw:(raw.prompts||[]);
+            if(!arr.length){toast('프롬프트 데이터가 없습니다','e');return}
+            restoreData={raw,arr,fileName:f.name};
+            showRestorePreview();
+        }catch(err){toast('파일 파싱 오류','e')}
+    };
+    r.readAsText(f,'UTF-8');
+}
+
+// ★ 수정된 showRestorePreview - smartMerge 시뮬레이션 사용
+function showRestorePreview(){
+    if(!restoreData)return;
+    const {arr,fileName}=restoreData;
+    const mode=$('restoreMode').value;
+    const cats=[...new Set(arr.map(p=>p.category).filter(Boolean))];
+
+    let mergeNew=0,mergeUpdate=0,mergeSame=0;
+    if(mode==='merge'){
+        // 시뮬레이션 (실제 데이터 변경 없이 미리보기)
+        arr.forEach(item=>{
+            if(!item.name||!item.content)return;
+            const result = findMatch(item, P);
+            if(result){
+                const ver = compareVersion(result.match, item);
+                if(ver==='same') mergeSame++;
+                else if(ver==='remote') mergeUpdate++;
+                else mergeSame++; // 로컬이 최신이면 스킵
+            }else{
+                mergeNew++;
+            }
+        });
+    }
+
+    let html='<div style="background:#f0f8ff;border:1px solid #c0d8f0;border-radius:6px;padding:10px;margin-bottom:8px">';
+    html+='<div style="font-weight:700;color:#2d6aa0;margin-bottom:6px">📄 '+esc(fileName)+'</div>';
+    html+='<div style="font-size:calc(var(--fs) - 1.5pt);color:#4a6a8a;line-height:1.6">';
+    html+='프롬프트 수: <strong>'+arr.length+'개</strong><br>';
+    html+='카테고리: <strong>'+(cats.length?cats.join(', '):'없음')+'</strong><br>';
+    if(restoreData.raw.exportedAt)html+='내보낸 날짜: <strong>'+fmtD(restoreData.raw.exportedAt)+'</strong><br>';
+    html+='현재 저장된 프롬프트: <strong>'+P.length+'개</strong>';
+
+    if(mode==='merge'){
+        html+='<br><br>🔀 <strong>병합 예상:</strong>';
+        html+=' 새로 추가 <strong style="color:#4a8a4a">'+mergeNew+'개</strong>,';
+        html+=' 업데이트 <strong style="color:#2d6aa0">'+mergeUpdate+'개</strong>,';
+        html+=' 동일(스킵) <strong style="color:#888">'+mergeSame+'개</strong>';
+    }else{
+        html+='<br><br>🔄 <strong>덮어쓰기:</strong> 현재 '+P.length+'개 → <strong style="color:#c04040">전체 삭제</strong> 후 '+arr.length+'개로 교체';
+    }
+    html+='</div></div>';
+
+    html+='<div style="display:flex;gap:6px;justify-content:flex-end">';
+    html+='<button class="btnC" onclick="cancelRestore()">취소</button>';
+    if(mode==='overwrite'){
+        html+='<button class="btnD" onclick="executeRestore()">⚠️ 덮어쓰기 실행</button>';
+    }else{
+        html+='<button class="btnR" onclick="executeRestore()">🔀 병합 실행</button>';
+    }
+    html+='</div>';
+
+    $('restorePreview').innerHTML=html;
+    $('restorePreview').style.display='block';
+}
+
+$('restoreMode').addEventListener('change',function(){
+    if(restoreData)showRestorePreview();
+});
+
+function cancelRestore(){
+    restoreData=null;
+    $('restorePreview').style.display='none';
+    $('restorePreview').innerHTML='';
+}
+
+// ★ 수정된 executeRestore - smartMerge 사용
+async function executeRestore(){
+    if(!restoreData)return;
+    const {raw,arr}=restoreData;
+    const mode=$('restoreMode').value;
+
+    localStorage.setItem('pm2_restore_backup',JSON.stringify(P));
+
+    if(mode==='overwrite'){
+        if(!confirm('⚠️ 정말로 현재 데이터를 모두 삭제하고 백업으로 교체하시겠습니까?\n\n현재 '+P.length+'개 → '+arr.length+'개로 교체됩니다.\n\n(현재 데이터는 임시 백업됩니다)')){
+            return;
+        }
+        P=arr.map(item=>({
+            id:item.id||gid(),
+            name:item.name||'이름 없음',
+            category:item.category||'',
+            content:item.content||'',
+            createdAt:item.createdAt||new Date().toISOString(),
+            updatedAt:item.updatedAt||new Date().toISOString()
+        }));
+        if(raw.catOrd){catOrd=raw.catOrd;saveCO()}
+        if(raw.pOrd){pOrd=raw.pOrd;savePO()}
+        await saveP2(true);
+        render();
+        toast('🔄 '+P.length+'개 프롬프트로 교체 완료','s');
+    }else{
+        // ★ 스마트 병합 사용
+        const result = smartMerge(arr, {
+            remoteCatOrd: raw.catOrd,
+            remotePOrd: raw.pOrd
+        });
+        await saveP2(true);
+        render();
+        toast('🔀 병합 완료 (추가:'+result.added+', 업데이트:'+result.updated+', 동일:'+result.skipped+')','s');
+    }
+
+    cancelRestore();
+}
+
+function undoRestore(){
+    const bk=localStorage.getItem('pm2_restore_backup');
+    if(!bk){toast('복원 취소 데이터가 없습니다','e');return}
+    if(!confirm('복원 전 데이터로 되돌리시겠습니까?'))return;
+    P=JSON.parse(bk);
+    saveP2(true);
+    render();
+    toast('↩️ 복원 취소 완료','s');
+}
+
+async function showFolderBackups(){
+    const el=$('folderBkList');
+    if(!dirH){el.innerHTML='';return}
+    const files=await lbk();
+    if(!files.length){el.innerHTML='<div style="font-size:calc(var(--fs) - 1.5pt);color:#a0a0b4;padding:8px 0">📂 백업 폴더에 파일이 없습니다</div>';return}
+    const sorted=files.slice().reverse().slice(0,20);
+    let html='<div style="font-size:calc(var(--fs) - 1pt);font-weight:700;color:#4a4a5a;margin-bottom:6px">📂 백업 폴더 파일 (최근 '+sorted.length+'개)</div>';
+    html+=sorted.map(fn=>{
+        const dateMatch=fn.match(/(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})/);
+        let dateStr=fn;
+        if(dateMatch)dateStr=dateMatch[1]+'.'+dateMatch[2]+'.'+dateMatch[3]+' '+dateMatch[4]+':'+dateMatch[5]+':'+dateMatch[6];
+        return '<div class="conflict-row"><div><div class="conflict-label" style="font-size:calc(var(--fs) - 1.5pt)">'+esc(fn)+'</div><div class="conflict-meta">'+dateStr+'</div></div><button class="fsm" onclick="restoreFromFolder(\''+esc(fn)+'\')">복원</button></div>';
+    }).join('');
+    el.innerHTML=html;
+}
+
+async function restoreFromFolder(fn){
+    if(!dirH){toast('백업 폴더가 없습니다','e');return}
+    const data=await readBkFile(fn);
+    if(!data){toast('파일 읽기 실패','e');return}
+    const arr=Array.isArray(data)?data:(data.prompts||[]);
+    if(!arr.length){toast('프롬프트 데이터가 없습니다','e');return}
+    restoreData={raw:data,arr,fileName:fn};
+    showRestorePreview();
+    toast('📂 "'+fn+'" 로드됨 - 아래에서 모드 선택 후 실행','i');
+}
+
+// ========== 백업 ==========
+async function doBk(silent){
+    if(!P.length)return;
+    const now=new Date(),fn='prompt-backup-'+ds(now)+'-'+ts(now)+'.json';
+    const data=JSON.stringify({prompts:P,catOrd,pOrd,exportedAt:now.toISOString(),version:'2.0'},null,2);
+    if(dirH){const ok=await wf(dirH,fn,data);if(ok){updLBT();await cleanBk();if(!silent)toast('📂 '+fn,'s');return}if(!silent)toast('폴더 실패, 다운로드','w')}
+    dlBk(fn,data);updLBT();if(!silent)toast(fn+' 다운로드','i');
+}
+function dlBk(fn,data){const b=new Blob([data],{type:'application/json;charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=fn;a.click();URL.revokeObjectURL(u)}
+async function cleanBk(){const s=ls();if(!s.maxBk||!dirH)return;const f=await lbk();if(f.length>s.maxBk){for(const x of f.slice(0,f.length-s.maxBk))await df(dirH,x)}}
+function doExport(){if(!P.length){toast('데이터 없음','e');return}doBk(false)}
+
+async function onChanged(skipGist){
+    const s=ls();
+    if(s.bkChg&&P.length>0){await doBk(true);toast('💾 자동 백업','i')}
+    if(!skipGist&&s.gistAutoSync&&s.gistToken&&P.length>0){
+        clearTimeout(window._gistDebounce);
+        window._gistDebounce=setTimeout(()=>gistAutoSync(),2000);
+    }
+}
+
+// ========== 설정 ==========
+const DS={bkChg:true,bkInt:0,warn:true,maxBk:10,lbt:null,ff:"'Nanum Gothic',sans-serif",fs:9,obsSync:true,obsCatFolder:true,obsYaml:true,gistToken:'',gistId:'',gistAutoSync:false,gistPrivate:true,gistLastSync:null};
+function ls(){const s=localStorage.getItem('pmS2');return s?{...DS,...JSON.parse(s)}:{...DS}}
+function ss(s){localStorage.setItem('pmS2',JSON.stringify(s))}
+
+function saveBkSet(){
+    const s=ls();
+    s.bkChg=$('sBkChg').checked;s.bkInt=+$('sBkInt').value;s.warn=$('sWarn').checked;s.maxBk=+$('sMaxBk').value;
+    ss(s);applyBk();toast('저장됨','s');
+}
+function saveObsSet(){
+    const s=ls();
+    s.obsSync=$('sObsSync').checked;s.obsCatFolder=$('sObsCatFolder').checked;s.obsYaml=$('sObsYaml').checked;
+    ss(s);toast('저장됨','s');
+}
+
+function updLBT(){const s=ls();s.lbt=new Date().toISOString();ss(s)}
+function applyBk(){
+    const s=ls();
+    $('sBkChg').checked=s.bkChg;$('sBkInt').value=s.bkInt;$('sWarn').checked=s.warn;$('sMaxBk').value=s.maxBk;
+    if(bkTimer){clearInterval(bkTimer);bkTimer=null}
+    if(s.bkInt>0)bkTimer=setInterval(()=>{if(P.length>0){doBk(true);toast('⏰ 주기 백업','i')}},s.bkInt*60000);
+    window.onbeforeunload=s.warn?function(e){if(P.length>0){e.preventDefault();e.returnValue='';return ''}}:null;
+    updFolderUI();renderSt();
+}
+
+function updFolderUI(){
+    const el=$('folderSt');if(!el)return;const s=ls();
+    if(dirH){el.innerHTML='<div class="fpd"><span>📂 <span class="pth">'+esc(dirH.name)+'</span></span><span style="display:flex;gap:4px"><button class="fsm" onclick="pickFolder()">변경</button><button class="fsm dng" onclick="disconnBk()">해제</button></span></div><div style="font-size:7pt;color:#a0a0b4;margin-bottom:8px">마지막 백업: '+(s.lbt?fmtD(s.lbt):'없음')+'</div>'}
+    else{el.innerHTML='<div style="text-align:center;padding:12px;background:#fafafc;border:1px dashed #d0d0e0;border-radius:6px;margin-bottom:10px;cursor:pointer" onclick="pickFolder()"><div style="font-size:20px;margin-bottom:4px">📂</div><div style="font-size:8pt;color:#8888a0;font-weight:700">백업 폴더 선택</div></div>'}
+}
+function updObsUI(){
+    const el=$('obsStatus');if(!el)return;
+    if(obsDirH){el.innerHTML='<div class="obsd"><span>💎 <span class="pth" style="font-weight:700">'+esc(obsDirH.name)+'</span></span><span style="display:flex;gap:4px"><button class="fsm" onclick="pickObsFolder()" style="background:#d0c0f0;color:#6a50b0">변경</button><button class="fsm dng" onclick="disconnObs()">해제</button></span></div>'}
+    else{el.innerHTML='<div style="text-align:center;padding:12px;background:#f0ecf8;border:1px dashed #d0c0f0;border-radius:6px;margin-bottom:10px;cursor:pointer" onclick="pickObsFolder()"><div style="font-size:20px;margin-bottom:4px">💎</div><div style="font-size:8pt;color:#8a70c0;font-weight:700">Obsidian 볼트 폴더 선택</div></div>'}
+}
+function loadObsSet(){const s=ls();$('sObsSync').checked=s.obsSync;$('sObsCatFolder').checked=s.obsCatFolder;$('sObsYaml').checked=s.obsYaml}
+
+// ========== 폰트 ==========
+function loadFont(){const s=ls();$('sFF').value=s.ff;$('sFS').value=s.fs;pvFont()}
+function pvFont(){const ff=$('sFF').value,fs=$('sFS').value;$('fsVal').textContent=fs+'pt';$('fsLbl').textContent=fs+'pt';$('fPrev').style.fontFamily=ff;$('fPrev').style.fontSize=fs+'pt'}
+function applyFont(){const s=ls();s.ff=$('sFF').value;s.fs=+$('sFS').value;ss(s);applyFP();toast('폰트 적용','s')}
+function applyFP(){const s=ls();document.documentElement.style.setProperty('--ff',s.ff);document.documentElement.style.setProperty('--fs',s.fs+'pt')}
+
+// ========== 카테고리 순서 ==========
+function loadCO(){const d=localStorage.getItem('pmCO2');catOrd=d?JSON.parse(d):[]}
+function saveCO(){localStorage.setItem('pmCO2',JSON.stringify(catOrd))}
+function getOC(){const all=[...new Set(P.map(p=>p.category).filter(Boolean))];const o=[];catOrd.forEach(c=>{if(all.includes(c))o.push(c)});all.forEach(c=>{if(!o.includes(c))o.push(c)});return o}
+
+function renderCatList(){
+    const el=$('catList'),cats=getOC();
+    el.innerHTML=cats.map((c,i)=>{const n=P.filter(p=>p.category===c).length;return '<div class="csi" draggable="true" data-cat="'+esc(c)+'" data-idx="'+i+'"><span class="gp">⠿</span><span class="cn">'+esc(c)+'</span><span class="cc">'+n+'개</span></div>'}).join('');
+    initCatDrag();
+}
+let catDI=null;
+function initCatDrag(){
+    const items=document.querySelectorAll('.csi');
+    items.forEach(it=>{
+        it.addEventListener('dragstart',e=>{catDI=+it.dataset.idx;it.classList.add('dragging');e.dataTransfer.effectAllowed='move'});
+        it.addEventListener('dragend',()=>{it.classList.remove('dragging');items.forEach(x=>x.classList.remove('dragover'));catDI=null});
+        it.addEventListener('dragover',e=>{e.preventDefault();if(+it.dataset.idx!==catDI)it.classList.add('dragover')});
+        it.addEventListener('dragleave',()=>it.classList.remove('dragover'));
+        it.addEventListener('drop',e=>{e.preventDefault();it.classList.remove('dragover');const ti=+it.dataset.idx;if(catDI===null||catDI===ti)return;const c=getOC(),m=c.splice(catDI,1)[0];c.splice(ti,0,m);catOrd=c;renderCatList()});
+    });
+}
+function saveCatOrd(){const items=document.querySelectorAll('.csi');catOrd=[...items].map(x=>x.dataset.cat);saveCO();render();toast('카테고리 순서 저장','s')}
+
+// ========== 프롬프트 순서 ==========
+function loadPO(){const d=localStorage.getItem('pmPO2');pOrd=d?JSON.parse(d):[]}
+function savePO(){localStorage.setItem('pmPO2',JSON.stringify(pOrd))}
+function getOP(list){if(!pOrd.length)return list;const o=[];pOrd.forEach(id=>{const p=list.find(x=>x.id===id);if(p)o.push(p)});list.forEach(p=>{if(!o.includes(p))o.push(p)});return o}
+
+let cardDI=null;
+function initCardDrag(){
+    const cards=document.querySelectorAll('.card[data-id]');
+    cards.forEach(card=>{
+        const h=card.querySelector('.cdh');
+        h.addEventListener('mousedown',()=>card.setAttribute('draggable','true'));
+        document.addEventListener('mouseup',()=>{document.querySelectorAll('.card').forEach(c=>c.setAttribute('draggable','false'))});
+        card.addEventListener('dragstart',e=>{cardDI=card.dataset.id;card.classList.add('dragging');e.dataTransfer.effectAllowed='move'});
+        card.addEventListener('dragend',()=>{card.classList.remove('dragging');cards.forEach(x=>x.classList.remove('dragover'));cardDI=null});
+        card.addEventListener('dragover',e=>{e.preventDefault();if(card.dataset.id!==cardDI)card.classList.add('dragover')});
+        card.addEventListener('dragleave',()=>card.classList.remove('dragover'));
+        card.addEventListener('drop',e=>{
+            e.preventDefault();card.classList.remove('dragover');
+            if(!cardDI||cardDI===card.dataset.id)return;
+            const vis=[...document.querySelectorAll('.card[data-id]')].map(c=>c.dataset.id);
+            const fi=vis.indexOf(cardDI),ti=vis.indexOf(card.dataset.id);
+            if(fi===-1||ti===-1)return;
+            vis.splice(fi,1);vis.splice(ti,0,cardDI);
+            const rest=P.map(p=>p.id).filter(id=>!vis.includes(id));
+            pOrd=[...vis,...rest];savePO();render();toast('순서 변경','i');
+        });
+    });
+}
+
+// ========== 데이터 ==========
+function loadP(){const d=localStorage.getItem('pm2');if(d)P=JSON.parse(d)}
+async function saveP2(skipGist){
+    localStorage.setItem('pm2',JSON.stringify(P));
+    await onChanged(skipGist);
+}
+
+// ========== 렌더 ==========
+function render(){
+    const g=$('grd'),q=$('sInput').value.toLowerCase();
+    let f=P.filter(p=>{
+        const ms=p.name.toLowerCase().includes(q)||p.content.toLowerCase().includes(q)||(p.category&&p.category.toLowerCase().includes(q));
+        const mf=aFilter==='전체'||p.category===aFilter;return ms&&mf;
+    });
+    f=getOP(f);
+    if(!f.length){g.innerHTML='<div class="empty"><div class="ic">📭</div><h3>프롬프트가 없습니다</h3><p>"＋ 새 프롬프트"를 눌러 등록하거나<br>"📦 복원" 탭에서 백업 파일을 불러오세요</p></div>'}
+    else{g.innerHTML=f.map(p=>'<div class="card" data-id="'+p.id+'" draggable="false"><div class="cdh" title="드래그로 순서 변경">⠿⠿⠿</div><div class="chd"><div class="ctw"><div class="ctt">'+esc(p.name)+'</div>'+(p.category?'<span class="ctg">'+esc(p.category)+'</span>':'')+'</div><div class="cacts"><button class="cb cbc" title="복사" onclick="event.stopPropagation();cpP(\''+p.id+'\')">📋</button>'+(obsDirH?'<button class="cb cbo" title="Obsidian" onclick="event.stopPropagation();syncOneBtn(\''+p.id+'\')">💎</button>':'')+'<button class="cb cbd" title="TXT" onclick="event.stopPropagation();dlP(\''+p.id+'\')">💾</button><button class="cb cbe" title="수정" onclick="event.stopPropagation();editP(\''+p.id+'\')">✏️</button><button class="cb cbx" title="삭제" onclick="event.stopPropagation();delP(\''+p.id+'\')">🗑</button></div></div><div class="cbody" onclick="viewP(\''+p.id+'\')"><div class="cprev">'+esc(p.content)+'</div></div><div class="cfoot"><span>'+fmtD(p.createdAt)+'</span><span>'+p.content.length+'자</span></div></div>').join('');initCardDrag()}
+    renderF();renderSt();
+}
+
+async function syncOneBtn(id){const p=P.find(x=>x.id===id);if(!p)return;const ok=await syncOneToObs(p);toast(ok?'💎 Obsidian 저장됨':'💎 실패','s')}
+
+// ========== 필터 ==========
+let fDragC=null;
+function renderF(){
+    const bar=$('fBar'),cats=['전체',...getOC()];
+    bar.innerHTML=cats.map(c=>{const dr=c!=='전체';return '<div class="fchip'+(aFilter===c?' active':'')+'" '+(dr?'draggable="true"':'')+' data-cat="'+esc(c)+'" onclick="setF(\''+esc(c).replace(/'/g,"\\'")+'\')">'+(dr?'<span class="gh">⠿</span>':'')+esc(c)+'</div>'}).join('');
+    initFDrag();
+}
+function initFDrag(){
+    const chips=document.querySelectorAll('.fchip[draggable="true"]');
+    chips.forEach(ch=>{
+        ch.addEventListener('dragstart',e=>{fDragC=ch.dataset.cat;ch.classList.add('dragging');e.dataTransfer.effectAllowed='move'});
+        ch.addEventListener('dragend',()=>{ch.classList.remove('dragging');chips.forEach(x=>x.classList.remove('dragover'));fDragC=null});
+        ch.addEventListener('dragover',e=>{e.preventDefault();if(ch.dataset.cat!==fDragC)ch.classList.add('dragover')});
+        ch.addEventListener('dragleave',()=>ch.classList.remove('dragover'));
+        ch.addEventListener('drop',e=>{
+            e.preventDefault();ch.classList.remove('dragover');
+            if(!fDragC||fDragC===ch.dataset.cat)return;
+            const c=getOC(),fi=c.indexOf(fDragC),ti=c.indexOf(ch.dataset.cat);
+            if(fi===-1||ti===-1)return;
+            c.splice(fi,1);c.splice(ti,0,fDragC);catOrd=c;saveCO();renderF();toast('카테고리 순서 변경','i');
+        });
+    });
+}
+
+function setF(c){aFilter=c;localStorage.setItem('pmLF2',c);render()}
+
+function renderSt(){
+    const s=ls();let b='';
+    if(dirH)b+='<span class="badge bfolder">📂 '+esc(dirH.name)+'</span>';
+    if(obsDirH)b+='<span class="badge bobs">💎 '+esc(obsDirH.name)+'</span>';
+    if(s.gistId)b+='<span class="badge bgist">🐙 Gist</span>';
+    if(s.bkChg)b+='<span class="badge bon">● 자동백업</span>';
+    if(s.gistAutoSync&&s.gistToken)b+='<span class="badge bgist">● Gist 자동</span>';
+    if(s.bkInt>0)b+='<span class="badge bon">● '+s.bkInt+'분주기</span>';
+    if(!dirH&&!s.bkChg&&!s.bkInt&&!s.gistId)b+='<span class="badge boff">● 백업 미설정</span>';
+    $('stBar').innerHTML='총 '+P.length+'개 등록 '+b;
+}
+
+// ========== 탭 ==========
+function swTab(btn){
+    document.querySelectorAll('.tcont').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('active'));
+    $(btn.dataset.tab).classList.add('active');btn.classList.add('active');
+    if(btn.dataset.tab==='tCatOrd')renderCatList();
+    if(btn.dataset.tab==='tFont')loadFont();
+    if(btn.dataset.tab==='tBackup')applyBk();
+    if(btn.dataset.tab==='tRestore')showFolderBackups();
+    if(btn.dataset.tab==='tObs'){loadObsSet();updObsUI()}
+    if(btn.dataset.tab==='tGist')loadGistSet();
+}
+
+// ========== 모달 ==========
+function openAdd(){
+    editId=null;$('mAddT').textContent='새 프롬프트 등록';
+    $('pName').value='';$('pCat').value=aFilter!=='전체'?aFilter:'';$('pCont').value='';
+    updCatDL();$('mAdd').classList.add('active');$('pName').focus();
+}
+function closeAdd(){$('mAdd').classList.remove('active');editId=null}
+function closeView(){$('mView').classList.remove('active')}
+function openSettings(){loadFont();applyBk();loadObsSet();updObsUI();loadGistSet();renderCatList();$('mSet').classList.add('active')}
+function closeSettings(){$('mSet').classList.remove('active')}
+function updCatDL(){$('catDL').innerHTML=getOC().map(c=>'<option value="'+esc(c)+'">').join('')}
+
+// ========== CRUD ==========
+async function saveP(){
+    const nm=$('pName').value.trim(),ct=$('pCat').value.trim(),cn=$('pCont').value.trim();
+    if(!nm){toast('이름을 입력하세요','e');$('pName').focus();return}
+    if(!cn){toast('내용을 입력하세요','e');$('pCont').focus();return}
+
+    let savedPrompt=null;
+    const wasEdit=!!editId;
+
+    if(editId){
+        const i=P.findIndex(p=>p.id===editId);
+        if(i!==-1){
+            P[i].name=nm;P[i].category=ct;P[i].content=cn;P[i].updatedAt=new Date().toISOString();
+            savedPrompt=P[i];
+        }
+        toast('수정 완료','s');
+    }else{
+        const nid=gid();
+        savedPrompt={id:nid,name:nm,category:ct,content:cn,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+        P.push(savedPrompt);
+        pOrd.unshift(nid);savePO();
+        toast('등록 완료','s');
+    }
+
+    await saveP2();
+    closeAdd();
+    render();
+
+    if(savedPrompt){
+        const s=ls();
+        if(s.obsSync&&obsDirH){
+            const ok=await syncOneToObs(savedPrompt);
+            if(ok)toast('💎 Obsidian 동기화됨','i');
+        }
+    }
+}
+
+function viewP(id){
+    const p=P.find(x=>x.id===id);if(!p)return;
+    $('mViewT').textContent=p.name;
+    $('vCont').textContent=p.content;
+    $('mView').classList.add('active');
+}
+
+function cpP(id){const p=P.find(x=>x.id===id);if(!p)return;clip(p.content);toast('"'+p.name+'" 복사됨','s')}
+function copyView(){clip($('vCont').textContent);toast('복사됨','s')}
+function clip(t){if(navigator.clipboard)navigator.clipboard.writeText(t).catch(()=>fbClip(t));else fbClip(t)}
+function fbClip(t){const a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.left='-9999px';document.body.appendChild(a);a.select();document.execCommand('copy');document.body.removeChild(a)}
+
+function dlP(id){
+    const p=P.find(x=>x.id===id);if(!p)return;
+    if(dirH)wf(dirH,p.name.replace(/[\\/:*?"<>|]/g,'_')+'.txt',p.content);
+    const b=new Blob([p.content],{type:'text/plain;charset=utf-8'}),u=URL.createObjectURL(b),a=document.createElement('a');
+    a.href=u;a.download=p.name+'.txt';a.click();URL.revokeObjectURL(u);
+    toast('"'+p.name+'.txt" 저장됨','i');
+}
+
+function editP(id){
+    const p=P.find(x=>x.id===id);if(!p)return;editId=id;
+    $('mAddT').textContent='프롬프트 수정';$('pName').value=p.name;$('pCat').value=p.category||'';$('pCont').value=p.content;
+    updCatDL();$('mAdd').classList.add('active');$('pName').focus();
+}
+
+async function delP(id){
+    const p=P.find(x=>x.id===id);if(!p)return;
+    if(confirm('"'+p.name+'" 삭제하시겠습니까?')){
+        const s=ls();
+        if(s.obsSync&&obsDirH) await deleteObsMd(p);
+        P=P.filter(x=>x.id!==id);
+        pOrd=pOrd.filter(x=>x!==id);savePO();
+        await saveP2();render();toast('삭제됨','i');
+    }
+}
+
+// ★ 수정된 가져오기 - smartMerge 사용
+function doImport(){$('impF').click()}
+$('impF').addEventListener('change',function(e){
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=function(ev){
+        try{
+            if(f.name.endsWith('.json')){
+                const raw=JSON.parse(ev.target.result);
+                let arr=Array.isArray(raw)?raw:(raw.prompts||[]);
+
+                // ★ 스마트 병합 사용
+                const result = smartMerge(arr, {
+                    remoteCatOrd: raw.catOrd,
+                    remotePOrd: raw.pOrd
+                });
+
+                saveP2();render();
+                toast('가져오기 완료 (+'+result.added+' /↑'+result.updated+' /='+result.skipped+')','s');
+            }else if(f.name.endsWith('.txt')){
+                const nm=f.name.replace('.txt','');
+                // txt 파일은 이름 매칭 체크
+                const existing = P.find(p => normName(p.name) === normName(nm));
+                if(existing){
+                    if(confirm('"'+nm+'" 이름의 프롬프트가 이미 존재합니다.\n덮어쓰시겠습니까?')){
+                        existing.content = ev.target.result;
+                        existing.updatedAt = new Date().toISOString();
+                        saveP2();render();toast('"'+nm+'" 업데이트됨','s');
+                    }
+                }else{
+                    P.push({id:gid(),name:nm,category:'가져오기',content:ev.target.result,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
+                    saveP2();render();toast('"'+nm+'" 가져옴','s');
+                }
+            }
+        }catch(err){toast('파일 오류','e')}
+    };
+    r.readAsText(f,'UTF-8');e.target.value='';
+});
+
+// ========== 유틸 ==========
+function $(id){return document.getElementById(id)}
+function gid(){return Date.now().toString(36)+Math.random().toString(36).substr(2)}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function fmtD(s){const d=new Date(s);return d.getFullYear()+'.'+S(d.getMonth()+1)+'.'+S(d.getDate())+' '+S(d.getHours())+':'+S(d.getMinutes())}
+function S(n){return String(n).padStart(2,'0')}
+function ds(d){return d.getFullYear()+''+S(d.getMonth()+1)+S(d.getDate())}
+function ts(d){return S(d.getHours())+S(d.getMinutes())+S(d.getSeconds())}
+function toast(msg,type){
+    const cls={s:'ts',i:'ti',e:'te',w:'tw'};
+    const t=document.createElement('div');t.className='toast '+(cls[type]||'ti');t.textContent=msg;
+    document.body.appendChild(t);setTimeout(()=>t.remove(),2500);
+}
+
+// ========== 단축키 ==========
+document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){closeAdd();closeView();closeSettings()}
+    if(e.ctrlKey&&e.key==='n'){e.preventDefault();openAdd()}
+    if(e.ctrlKey&&e.key==='s'){e.preventDefault();doExport()}
+});
+
+$('mAdd').addEventListener('click',function(e){if(e.target===this)closeAdd()});
+$('mView').addEventListener('click',function(e){if(e.target===this)closeView()});
+$('mSet').addEventListener('click',function(e){if(e.target===this)closeSettings()});
+
+// ========== 초기화 ==========
+async function init(){
+    if(!hasFS())$('apiW').style.display='block';
+    loadP();loadCO();loadPO();
+    const lf=localStorage.getItem('pmLF2');if(lf)aFilter=lf;
+    render();
+    await restoreHandles();
+    if(dirH)toast('📂 '+dirH.name+' 연결됨','i');
+    if(obsDirH)toast('💎 '+obsDirH.name+' 연결됨','i');
+    applyFP();applyBk();
+    initRestoreZone();
+
+    const s=ls();
+    if(s.gistId&&s.gistToken)toast('🐙 Gist 연결됨','i');
+}
+init();
+</script>
+</body>
+</html>
+                      
