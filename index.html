@@ -1077,8 +1077,12 @@ async function onChanged(skipGist){
     const s=ls();
     if(s.bkChg&&P.length>0){await doBk(true);toast('💾 자동 백업','i')}
     if(!skipGist&&s.gistAutoSync&&s.gistToken&&P.length>0){
+        window._pendingGistPush = true; // ★ 추가
         clearTimeout(window._gistDebounce);
-        window._gistDebounce=setTimeout(()=>gistAutoSync(),2000);
+        window._gistDebounce=setTimeout(async ()=>{
+            await gistAutoSync();
+            window._pendingGistPush = false; // ★ 추가
+        },2000);
     }
 }
 
@@ -1413,9 +1417,40 @@ async function init(){
     applyFP();applyBk();
     initRestoreZone();
 
+    // ★ Gist 자동 Pull (페이지 열 때)
     const s=ls();
-    if(s.gistId&&s.gistToken)toast('🐙 Gist 연결됨','i');
+    if(s.gistId&&s.gistToken){
+        toast('🐙 Gist 연결됨','i');
+        // 마지막 동기화로부터 1분 이상 지났으면 자동 Pull
+        const lastSync = s.gistLastSync ? new Date(s.gistLastSync).getTime() : 0;
+        const now = Date.now();
+        if(now - lastSync > 60000){ // 1분
+            toast('🔄 자동 동기화 중...','i');
+            setTimeout(async ()=>{
+                try{
+                    await gistPull();
+                }catch(e){
+                    console.log('Auto-pull failed:',e);
+                }
+            }, 1500); // 페이지 로드 후 1.5초 뒤 실행
+        }
+    }
 }
+// ★ 페이지 떠날 때 자동 Push
+document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'hidden'){
+        const s = ls();
+        if(s.gistAutoSync && s.gistToken && P.length > 0){
+            // sendBeacon으로는 Gist API 호출이 어려우므로
+            // 마지막 변경사항이 있었다면 push 시도
+            if(window._pendingGistPush){
+                gistPush();
+                window._pendingGistPush = false;
+            }
+        }
+    }
+});
+    
 init();
 </script>
 </body>
