@@ -171,7 +171,52 @@
 
         ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#d8d8e4;border-radius:2px}
         #impF,#restoreF{display:none}
-        @media(max-width:640px){.header{padding:8px 12px;flex-direction:column;gap:8px}.grid{padding:8px 12px;grid-template-columns:1fr}.sbar,.fbar,.stbar{padding-left:12px;padding-right:12px}}
+        @media(max-width:640px){
+    .header{padding:8px 12px;flex-direction:column;gap:8px}
+    .header h1{font-size:calc(var(--fs) + 2pt)}
+    .hbtns{justify-content:center}
+    .hb{padding:8px 16px;font-size:calc(var(--fs))}
+    
+    .grid{padding:8px 12px;grid-template-columns:1fr}
+    .sbar,.fbar,.stbar{padding-left:12px;padding-right:12px}
+    
+    /* 카드 버튼 크게 */
+    .cb{width:32px;height:32px;font-size:13px;border-radius:8px}
+    .cacts{gap:6px}
+    
+    /* 카드 제목 */
+    .ctt{font-size:calc(var(--fs) + 1pt)}
+    .cprev{font-size:var(--fs);max-height:64px}
+    
+    /* 필터 칩 크게 */
+    .fchip{padding:6px 14px;font-size:calc(var(--fs) - 0.5pt)}
+    
+    /* 모달 */
+    .md{width:95%;max-height:92vh}
+    .fg input,.fg textarea,.fg select{font-size:16px !important;padding:10px 12px}
+    /* ↑ iOS에서 16px 미만이면 자동 줌 발생하므로 중요! */
+    .fg textarea{min-height:200px}
+    
+    /* 모달 버튼 */
+    .mf button{padding:10px 24px;font-size:calc(var(--fs))}
+    .vcb{padding:12px;font-size:calc(var(--fs))}
+    
+    /* 설정 탭 */
+    .tbtn{padding:10px 12px}
+    .sr{padding:12px 0}
+    .tgl{width:44px;height:24px}
+    .tgs::before{height:18px;width:18px}
+    .tgl input:checked+.tgs::before{transform:translateX(20px)}
+    
+    /* 드래그 핸들 숨김 (터치에서 작동 안 함) */
+    .cdh{display:none}
+    .chd{padding:12px 12px 6px}
+    .fchip .gh{display:none}
+    
+    /* 터치 영역 확보 */
+    .card{min-height:80px}
+    .cbody{padding:8px 12px 12px}
+}
     </style>
 </head>
 <body>
