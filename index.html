@@ -1251,7 +1251,7 @@ function render(){
     
     f=getOP(f);
     if(!f.length){g.innerHTML='<div class="empty"><div class="ic">📭</div><h3>프롬프트가 없습니다</h3><p>"＋ 새 프롬프트"를 눌러 등록하거나<br>"📦 복원" 탭에서 백업 파일을 불러오세요</p></div>'}
-    else{g.innerHTML=f.map(p=>'<div class="card" data-id="'+p.id+'" draggable="false"><div class="cdh" title="드래그로 순서 변경">⠿⠿⠿</div><div class="chd"><div class="ctw"><div class="ctt">'+esc(p.name)+'</div>'+(p.category?'<span class="ctg">'+esc(p.category)+'</span>':'')+'</div><div class="cacts"><button class="cb cbc" title="복사" onclick="event.stopPropagation();cpP(\''+p.id+'\')">📋</button>'+(obsDirH?'<button class="cb cbo" title="Obsidian" onclick="event.stopPropagation();syncOneBtn(\''+p.id+'\')">💎</button>':'')+'<button class="cb cbd" title="TXT" onclick="event.stopPropagation();dlP(\''+p.id+'\')">💾</button><button class="cb cbe" title="수정" onclick="event.stopPropagation();editP(\''+p.id+'\')">✏️</button><button class="cb cbx" title="삭제" onclick="event.stopPropagation();delP(\''+p.id+'\')">🗑</button></div></div><div class="cbody" onclick="viewP(\''+p.id+'\')"><div class="cprev">'+esc(p.content)+'</div></div><div class="cfoot"><span>'+fmtD(p.createdAt)+'</span><span>'+p.content.length+'자</span></div></div>').join('');initCardDrag()}
+    else{g.innerHTML=f.map(p=>'<div class="card" data-id="'+p.id+'" draggable="false"><div class="cdh" title="드래그로 순서 변경">⠿⠿⠿</div><div class="chd"><div class="ctw"><div class="ctt">'+esc(p.name)+'</div>'+(p.category?'<span class="ctg">'+esc(p.category)+'</span>':'')+'</div><div class="cacts"><button class="cb cbc" title="복사" onclick="event.stopPropagation();cpP(\''+p.id+'\')">📋</button>'+(obsDirH?'<button class="cb cbo" title="Obsidian" onclick="event.stopPropagation();syncOneBtn(\''+p.id+'\')">💎</button>':'')+'<button class="cb cbd" title="TXT" onclick="event.stopPropagation();dlP(\''+p.id+'\')">💾</button><button class="cb cbe" title="수정" onclick="event.stopPropagation();editP(\''+p.id+'\')">✏️</button><button class="cb cbx" title="삭제" onclick="event.stopPropagation();delP(\''+p.id+'\')">🗑</button></div></div><div class="cbody" onclick="viewP(\''+p.id+'\')"><div class="cprev">'+esc(p.content)+'</div></div><div class="cfoot"><span>'+fmtD(p.updatedAt || p.createdAt)+'</span><span>'+p.content.length+'자</span></div></div>').join('');initCardDrag()}
     renderF();renderSt();
 }
 
@@ -1338,7 +1338,7 @@ async function saveP(){
         toast('수정 완료','s');
     }else{
         const nid=gid();
-        savedPrompt={id:nid,name:nm,category:ct,content:cn,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+        savedPrompt={id:nid,name:nm,category:ct,content:cn,createdAt:new Date().toISOString(),updatedAt:new Date().toLocaleString('ko-KR')};
         P.push(savedPrompt);
         pOrd.unshift(nid);savePO();
         toast('등록 완료','s');
@@ -1424,7 +1424,7 @@ $('impF').addEventListener('change',function(e){
                         saveP2();render();toast('"'+nm+'" 업데이트됨','s');
                     }
                 }else{
-                    P.push({id:gid(),name:nm,category:'가져오기',content:ev.target.result,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
+                    P.push({id:gid(),name:nm,category:'가져오기',content:ev.target.result,createdAt:new Date().toISOString(),updatedAt:new Date().toLocaleString('ko-KR')});
                     saveP2();render();toast('"'+nm+'" 가져옴','s');
                 }
             }
