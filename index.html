@@ -1241,6 +1241,14 @@ function render(){
         const ms=p.name.toLowerCase().includes(q)||p.content.toLowerCase().includes(q)||(p.category&&p.category.toLowerCase().includes(q));
         const mf=aFilter==='전체'||p.category===aFilter;return ms&&mf;
     });
+
+    // 1단계: 기본 정렬 (업데이트 일자 기준 내림차순)
+    f.sort((a, b) => {
+        const dateA = new Date(a.updatedAt || a.createdAt);
+        const dateB = new Date(b.updatedAt || b.createdAt);
+        return dateB - dateA;
+    });
+    
     f=getOP(f);
     if(!f.length){g.innerHTML='<div class="empty"><div class="ic">📭</div><h3>프롬프트가 없습니다</h3><p>"＋ 새 프롬프트"를 눌러 등록하거나<br>"📦 복원" 탭에서 백업 파일을 불러오세요</p></div>'}
     else{g.innerHTML=f.map(p=>'<div class="card" data-id="'+p.id+'" draggable="false"><div class="cdh" title="드래그로 순서 변경">⠿⠿⠿</div><div class="chd"><div class="ctw"><div class="ctt">'+esc(p.name)+'</div>'+(p.category?'<span class="ctg">'+esc(p.category)+'</span>':'')+'</div><div class="cacts"><button class="cb cbc" title="복사" onclick="event.stopPropagation();cpP(\''+p.id+'\')">📋</button>'+(obsDirH?'<button class="cb cbo" title="Obsidian" onclick="event.stopPropagation();syncOneBtn(\''+p.id+'\')">💎</button>':'')+'<button class="cb cbd" title="TXT" onclick="event.stopPropagation();dlP(\''+p.id+'\')">💾</button><button class="cb cbe" title="수정" onclick="event.stopPropagation();editP(\''+p.id+'\')">✏️</button><button class="cb cbx" title="삭제" onclick="event.stopPropagation();delP(\''+p.id+'\')">🗑</button></div></div><div class="cbody" onclick="viewP(\''+p.id+'\')"><div class="cprev">'+esc(p.content)+'</div></div><div class="cfoot"><span>'+fmtD(p.createdAt)+'</span><span>'+p.content.length+'자</span></div></div>').join('');initCardDrag()}
