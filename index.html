@@ -1332,7 +1332,6 @@ async function saveP(){
         // ★ 수정: updatedAt을 toISOString()으로 통일
         savedPrompt={id:nid,name:nm,category:ct,content:cn,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
         P.push(savedPrompt);
-        pOrd.unshift(nid);savePO();
         toast('등록 완료','s');
     }
 
