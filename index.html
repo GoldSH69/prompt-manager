@@ -93,6 +93,37 @@
         .vc{background:rgba(255,255,255,.75);border:1px solid rgba(165,180,252,.3);border-radius:14px;padding:14px;white-space:pre-wrap;word-break:break-word;line-height:1.75;font-size:calc(var(--fs) - .5pt);color:var(--ink);max-height:320px;overflow-y:auto}
         .vcb{margin-top:10px;width:100%;padding:11px;border:none;border-radius:12px;background:linear-gradient(135deg,#6c7bbf,#8b5cf6);color:#fff;font-size:calc(var(--fs) - .5pt);font-weight:800;font-family:var(--ff);cursor:pointer;box-shadow:0 4px 16px rgba(108,123,191,.35);transition:.2s}
         .vcb:hover{transform:translateY(-1px)}
+        .tokline{margin-top:6px;font-size:calc(var(--fs) - 1.5pt);color:#8a90b8;font-weight:600}
+        .varbox{background:rgba(139,92,246,.07);border:1px solid rgba(139,92,246,.25);border-radius:14px;padding:10px 12px;margin-bottom:10px}
+        .varbox h4{font-size:calc(var(--fs) - .5pt);color:#4c5fb5;margin-bottom:8px}
+        .varrow{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+        .varrow:last-child{margin-bottom:0}
+        .varrow label{min-width:90px;max-width:40%;font-size:calc(var(--fs) - 1pt);font-weight:700;color:#3c4263;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .varin{flex:1;padding:7px 10px;border-radius:10px;border:1px solid rgba(165,180,252,.4);background:#fff;font-family:var(--ff);font-size:calc(var(--fs) - .5pt);outline:none;color:var(--ink)}
+        .varin:focus{border-color:#8b5cf6;box-shadow:0 0 0 3px rgba(139,92,246,.14)}
+        .histrow{border:1px solid rgba(165,180,252,.3);background:rgba(255,255,255,.7);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+        .histrow .hm{font-size:calc(var(--fs) - 1.5pt);color:#8a90b8;margin-bottom:6px;font-weight:700}
+        .histrow .hp{white-space:pre-wrap;word-break:break-word;max-height:96px;overflow:hidden;font-size:calc(var(--fs) - .5pt);line-height:1.6;color:var(--ink);position:relative}
+        .cfrow{border:1px solid rgba(240,180,120,.5);background:rgba(255,248,235,.8);border-radius:14px;padding:12px;margin-bottom:10px}
+        .cfrow h4{font-size:var(--fs);margin-bottom:6px}
+        .cfcols{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+        .cfcol{background:rgba(255,255,255,.85);border:1px solid rgba(165,180,252,.3);border-radius:10px;padding:8px;font-size:calc(var(--fs) - 1pt);white-space:pre-wrap;word-break:break-word;max-height:140px;overflow-y:auto;line-height:1.6}
+        .cfcol b{display:block;margin-bottom:4px;font-size:calc(var(--fs) - 1.5pt);color:#8a90b8}
+        .md.pal{background:rgba(255,255,255,.9)}
+        #palInput{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(165,180,252,.45);font-family:var(--ff);font-size:var(--fs);outline:none;background:#fff;color:var(--ink)}
+        #palInput:focus{border-color:#8b5cf6;box-shadow:0 0 0 4px rgba(139,92,246,.14)}
+        .palitem{padding:9px 12px;border-radius:10px;cursor:pointer;display:flex;justify-content:space-between;gap:8px;align-items:center}
+        .palitem:hover,.palitem.sel{background:linear-gradient(135deg,rgba(108,123,191,.16),rgba(139,92,246,.16))}
+        .palitem .pn{font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .palitem .pc{font-size:calc(var(--fs) - 1.5pt);color:#8a90b8;flex-shrink:0}
+        .palhint{margin-top:8px;font-size:calc(var(--fs) - 2pt);color:#9aa0c3;text-align:center}
+        /* 2차 폴리시: 과한 광택 억제 + 접근성 */
+        ::selection{background:rgba(139,92,246,.28)}
+        button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #8b5cf6;outline-offset:2px}
+        .tbtn.active{color:#4c5fb5}
+        .sd,.conflict-meta,.palhint{color:#7c82a6}
+        .card .cprev{letter-spacing:-.005em}
+        @media(max-width:640px){.cfcols{grid-template-columns:1fr}}
 
         .sr{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f6f6fa}
         .sr:last-child{border-bottom:none}
@@ -232,6 +263,7 @@
         <button class="hb hb5" onclick="pickFolder()" style="display:none">📂 백업위치</button>
         <button class="hb hb6" onclick="pickObsFolder()" style="display:none">💎 Obsidian</button>
         <button class="hb hb7" onclick="gistQuickSync()" style="display:none">🐙 Gist 동기화</button>
+        <button class="hb hb4" onclick="openPal()" title="Ctrl+K">⌨️ 검색</button>
         <button class="hb hb4" onclick="openSettings()">⚙️ 설정</button>
         <button class="hb hb3" onclick="doImport()" style="display:none">📥 가져오기</button>
         <button class="hb hb2" onclick="doExport()" style="display:none">📤 내보내기</button>
@@ -254,7 +286,7 @@
         <div class="mb">
             <div class="fg"><label>프롬프트 이름</label><input type="text" id="pName" placeholder="예: GPT 코드리뷰"></div>
             <div class="fg"><label>카테고리</label><input type="text" id="pCat" placeholder="예: 코딩, 글쓰기" list="catDL"><datalist id="catDL"></datalist></div>
-            <div class="fg"><label>프롬프트 내용</label><textarea id="pCont" placeholder="프롬프트 내용 입력..."></textarea></div>
+            <div class="fg"><label>프롬프트 내용 <span style="font-weight:400;color:#8a90b8">— {{변수}} 사용 가능</span></label><textarea id="pCont" placeholder="프롬프트 내용 입력... 예: {{주제}}에 대해 {{톤}}으로 써줘" oninput="updatePTok()"></textarea><div class="tokline" id="pTok"></div></div>
         </div>
         <div class="mf"><button class="btnC" onclick="closeAdd()">취소</button><button class="btnS" onclick="saveP()">저장</button></div>
     </div>
@@ -265,8 +297,39 @@
     <div class="md">
         <div class="mh"><h2 id="mViewT">보기</h2><button class="mx" onclick="closeView()">✕</button></div>
         <div class="mb">
+            <div id="vVars"></div>
             <div class="vc" id="vCont"></div>
-            <button class="vcb" onclick="copyView()">📋 클립보드에 복사</button>
+            <div class="tokline" id="vTok"></div>
+            <button class="vcb" onclick="copyView()">📋 클립보드에 복사 (변수 적용됨)</button>
+        </div>
+    </div>
+</div>
+
+<!-- 버전 히스토리 -->
+<div class="mo" id="mHist">
+    <div class="md">
+        <div class="mh"><h2 id="mHistT">🕘 버전 히스토리</h2><button class="mx" onclick="closeHist()">✕</button></div>
+        <div class="mb" id="histList"></div>
+        <div class="mf"><button class="btnC" onclick="closeHist()">닫기</button></div>
+    </div>
+</div>
+
+<!-- 동기화 충돌 해결 -->
+<div class="mo" id="mConflict">
+    <div class="md" style="max-width:640px">
+        <div class="mh"><h2>⚠️ 동기화 충돌 (<span id="cfN">0</span>)</h2><button class="mx" onclick="closeConflict()">✕</button></div>
+        <div class="mb"><div class="info" style="margin:0 0 10px">양쪽에서 서로 다르게 바뀐 프롬프트입니다. 항목별로 유지할 버전을 고르세요.</div><div id="cfList"></div></div>
+        <div class="mf"><button class="btnC" onclick="closeConflict()">나중에</button><button class="btnS" onclick="closeConflict()">완료</button></div>
+    </div>
+</div>
+
+<!-- 커맨드 팔레트 -->
+<div class="mo" id="mPal">
+    <div class="md pal" style="max-width:520px">
+        <div class="mb" style="padding-bottom:8px">
+            <input type="text" id="palInput" placeholder="⌨️ 프롬프트 검색… (↑↓ 이동, Enter 열기, Esc 닫기)" oninput="renderPal()" autocomplete="off">
+            <div id="palList"></div>
+            <div class="palhint">Ctrl+K 로 언제든 호출</div>
         </div>
     </div>
 </div>
@@ -607,10 +670,11 @@ function compareVersion(local, remote){
     const lu = local.updatedAt ? new Date(local.updatedAt).getTime() : 0;
     const ru = remote.updatedAt ? new Date(remote.updatedAt).getTime() : 0;
 
-    // 내용이 완전히 같으면 'same'
+    // 내용이 완전히 같으면 'same' (fav 포함)
     if(local.content === remote.content && 
        normName(local.name) === normName(remote.name) && 
-       (local.category||'') === (remote.category||'')){
+       (local.category||'') === (remote.category||'') &&
+       !!(local.fav) === !!(remote.fav)){
         return 'same';
     }
 
@@ -653,12 +717,14 @@ function smartMerge(remoteArr, options = {}){
                 }
                 skipped++;
             } else if(ver === 'remote'){
-                // 원격이 최신 → 업데이트
+                // 원격이 최신 → 업데이트 (덮어쓰기 전 히스토리 보관)
+                pushHist({...match});
                 const oldId = match.id;
                 match.name = item.name;
                 match.category = item.category || '';
                 match.content = item.content;
                 match.updatedAt = item.updatedAt;
+                if(item.fav!==undefined)match.fav=!!item.fav;
                 // ID 통일
                 if(match.id !== item.id){
                     match.id = item.id;
@@ -667,7 +733,16 @@ function smartMerge(remoteArr, options = {}){
                 }
                 updated++;
             } else {
-                // 로컬이 최신 → 로컬 유지, ID만 통일
+                // 로컬이 최신 → 로컬 유지. 단 내용이 서로 다르면 충돌 후보로 기록 (나중에 UI에서 선택)
+                // 단, 사용자가 이미 "로컬 유지"로 해결한 원격본이면 다시 묻지 않음
+                if(match.content!==item.content||normName(match.name)!==normName(item.name)||(match.category||'')!==(item.category||'')){
+                    try{
+                        const _res=getResolved();
+                        if(!(_res[match.id]&&(JSON.parse(_res[match.id]).content===(item.content||'')&&JSON.parse(_res[match.id]).updatedAt===(item.updatedAt||'')))){
+                            conflicts.push({localId:match.id,localName:match.name,localUpdated:match.updatedAt,remote:item});
+                        }
+                    }catch(e){conflicts.push({localId:match.id,localName:match.name,localUpdated:match.updatedAt,remote:item})}
+                }
                 if(type === 'name' && match.id !== item.id){
                     const oldId = match.id;
                     match.id = item.id;
@@ -683,6 +758,7 @@ function smartMerge(remoteArr, options = {}){
                 name: item.name,
                 category: item.category || '',
                 content: item.content,
+                fav: !!item.fav,
                 createdAt: item.createdAt || new Date().toISOString(),
                 updatedAt: item.updatedAt || new Date().toISOString()
             });
@@ -881,8 +957,9 @@ async function gistPull(){
         render();
         s.gistLastSync=new Date().toISOString();
         ss(s);
-        showGistSyncStatus('✅ Pull 완료! (추가:'+result.added+', 업데이트:'+result.updated+', 동일:'+result.skipped+')','ok');
-        toast('🐙 Pull 완료 (+'+result.added+' /↑'+result.updated+' /='+result.skipped+')','s');
+        showGistSyncStatus('✅ Pull 완료! (추가:'+result.added+', 업데이트:'+result.updated+', 동일:'+result.skipped+(result.conflicts&&result.conflicts.length?', 충돌:'+result.conflicts.length:'')+')','ok');
+        toast('🐙 Pull 완료 (+'+result.added+' /↑'+result.updated+' /='+result.skipped+(result.conflicts&&result.conflicts.length?' /⚠️'+result.conflicts.length:'')+')','s');
+        if(result.conflicts&&result.conflicts.length)showConflicts(result.conflicts);
     }catch(e){
         showGistSyncStatus('❌ Pull 오류: '+e.message,'err');
         toast('Pull 오류','e');
@@ -1053,6 +1130,7 @@ async function executeRestore(){
             name:item.name||'이름 없음',
             category:item.category||'',
             content:item.content||'',
+            fav:!!item.fav,
             createdAt:item.createdAt||new Date().toISOString(),
             updatedAt:item.updatedAt||new Date().toISOString()
         }));
@@ -1069,7 +1147,8 @@ async function executeRestore(){
         });
         await saveP2(true);
         render();
-        toast('🔀 병합 완료 (추가:'+result.added+', 업데이트:'+result.updated+', 동일:'+result.skipped+')','s');
+        toast('🔀 병합 완료 (추가:'+result.added+', 업데이트:'+result.updated+', 동일:'+result.skipped+(result.conflicts&&result.conflicts.length?', 충돌:'+result.conflicts.length:'')+')','s');
+        if(result.conflicts&&result.conflicts.length)showConflicts(result.conflicts);
     }
 
     cancelRestore();
@@ -1244,7 +1323,7 @@ function initCardDrag(){
 }
 
 // ========== 데이터 ==========
-function loadP(){try{const d=localStorage.getItem('pm2');if(d)P=JSON.parse(d)}catch(e){P=[];toast('⚠️ 저장된 데이터 읽기 실패 - 백업 파일로 복원하세요','e')}}
+function loadP(){try{const d=localStorage.getItem('pm2');if(d)P=JSON.parse(d)}catch(e){P=[];toast('⚠️ 저장된 데이터 읽기 실패 - 백업 파일로 복원하세요','e')}P.forEach(p=>{if(p.fav===undefined)p.fav=false})}
 async function saveP2(skipGist){
     safeLSSet('pm2',JSON.stringify(P));
     await onChanged(skipGist);
@@ -1268,8 +1347,10 @@ function render(){
     });
     
     f=getOP(f);
+    // 즐겨찾기 핀: fav 먼저, 나머지는 기존 순서 유지
+    f=[...f.filter(p=>p.fav),...f.filter(p=>!p.fav)];
     if(!f.length){g.innerHTML='<div class="empty"><div class="ic">📭</div><h3>프롬프트가 없습니다</h3><p>"＋ 새 프롬프트"를 눌러 등록하거나<br>"📦 복원" 탭에서 백업 파일을 불러오세요</p></div>'}
-    else{g.innerHTML=f.map(p=>'<div class="card" data-id="'+p.id+'" draggable="false"><div class="cdh" title="드래그로 순서 변경">⠿⠿⠿</div><div class="chd"><div class="ctw"><div class="ctt">'+esc(p.name)+'</div>'+(p.category?'<span class="ctg">'+esc(p.category)+'</span>':'')+'</div><div class="cacts"><button class="cb cbc" title="복사" onclick="event.stopPropagation();cpP(\''+p.id+'\')">📋</button>'+(obsDirH?'<button class="cb cbo" title="Obsidian" onclick="event.stopPropagation();syncOneBtn(\''+p.id+'\')">💎</button>':'')+'<button class="cb cbd" title="TXT" onclick="event.stopPropagation();dlP(\''+p.id+'\')">💾</button><button class="cb cbe" title="수정" onclick="event.stopPropagation();editP(\''+p.id+'\')">✏️</button><button class="cb cbx" title="삭제" onclick="event.stopPropagation();delP(\''+p.id+'\')">🗑</button></div></div><div class="cbody" onclick="viewP(\''+p.id+'\')"><div class="cprev">'+esc(p.content)+'</div></div><div class="cfoot"><span>'+fmtD(p.updatedAt || p.createdAt)+'</span><span>'+p.content.length+'자</span></div></div>').join('');initCardDrag()}
+    else{g.innerHTML=f.map(p=>'<div class="card" data-id="'+p.id+'" draggable="false"><div class="cdh" title="드래그로 순서 변경">⠿⠿⠿</div><div class="chd"><div class="ctw"><div class="ctt">'+(p.fav?'⭐ ':'')+esc(p.name)+'</div>'+(p.category?'<span class="ctg">'+esc(p.category)+'</span>':'')+'</div><div class="cacts"><button class="cb cbc" title="즐겨찾기" onclick="event.stopPropagation();toggleFav(\''+p.id+'\')">'+(p.fav?'⭐':'☆')+'</button><button class="cb cbc" title="복사" onclick="event.stopPropagation();cpP(\''+p.id+'\')">📋</button>'+(obsDirH?'<button class="cb cbo" title="Obsidian" onclick="event.stopPropagation();syncOneBtn(\''+p.id+'\')">💎</button>':'')+'<button class="cb cbd" title="TXT" onclick="event.stopPropagation();dlP(\''+p.id+'\')">💾</button><button class="cb cbe" title="버전" onclick="event.stopPropagation();showHist(\''+p.id+'\')">🕘</button><button class="cb cbe" title="수정" onclick="event.stopPropagation();editP(\''+p.id+'\')">✏️</button><button class="cb cbx" title="삭제" onclick="event.stopPropagation();delP(\''+p.id+'\')">🗑</button></div></div><div class="cbody" onclick="viewP(\''+p.id+'\')"><div class="cprev">'+esc(p.content)+'</div></div><div class="cfoot"><span>'+fmtD(p.updatedAt || p.createdAt)+'</span><span>'+p.content.length+'자 · ~'+estTok(p.content)+'토큰</span></div></div>').join('');initCardDrag()}
     renderF();renderSt();
 }
 
@@ -1332,10 +1413,10 @@ function swTab(btn){
 function openAdd(){
     editId=null;$('mAddT').textContent='새 프롬프트 등록';
     $('pName').value='';$('pCat').value=aFilter!=='전체'?aFilter:'';$('pCont').value='';
-    updCatDL();$('mAdd').classList.add('active');$('pName').focus();
+    updCatDL();updatePTok();$('mAdd').classList.add('active');$('pName').focus();
 }
 function closeAdd(){$('mAdd').classList.remove('active');editId=null}
-function closeView(){$('mView').classList.remove('active')}
+function closeView(){$('mView').classList.remove('active');window._viewId=null;window._viewVars={}}
 function openSettings(){loadFont();applyBk();loadObsSet();updObsUI();loadGistSet();renderCatList();$('mSet').classList.add('active')}
 function closeSettings(){$('mSet').classList.remove('active')}
 function updCatDL(){$('catDL').innerHTML=getOC().map(c=>'<option value="'+esc(c)+'">').join('')}
@@ -1352,6 +1433,7 @@ async function saveP(){
     if(editId){
         const i=P.findIndex(p=>p.id===editId);
         if(i!==-1){
+            pushHist({...P[i]});
             P[i].name=nm;P[i].category=ct;P[i].content=cn;P[i].updatedAt=new Date().toISOString();
             savedPrompt=P[i];
         }
@@ -1359,7 +1441,7 @@ async function saveP(){
     }else{
         const nid=gid();
         // ★ 수정: updatedAt을 toISOString()으로 통일
-        savedPrompt={id:nid,name:nm,category:ct,content:cn,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+        savedPrompt={id:nid,name:nm,category:ct,content:cn,fav:false,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
         P.push(savedPrompt);
         pOrd.unshift(nid);savePO();
         toast('등록 완료','s');
@@ -1380,13 +1462,35 @@ async function saveP(){
 
 function viewP(id){
     const p=P.find(x=>x.id===id);if(!p)return;
-    $('mViewT').textContent=p.name;
-    $('vCont').textContent=p.content;
+    window._viewId=id;window._viewVars={};
+    $('mViewT').textContent=(p.fav?'⭐ ':'')+p.name;
+    renderVars(p);
     $('mView').classList.add('active');
+}
+function renderVars(p){
+    const vars=extractVars(p.content);
+    const box=$('vVars');
+    if(!vars.length){box.innerHTML='';$('vCont').textContent=p.content}
+    else{
+        box.innerHTML='<div class="varbox"><h4>🧩 변수 ('+vars.length+') — 입력하면 미리보기·복사에 자동 반영</h4>'+vars.map(v=>'<div class="varrow"><label title="'+esc(v)+'">{{'+esc(v)+'}}</label><input class="varin" data-var="'+esc(v)+'" placeholder="'+esc(v)+' 입력…" oninput="onVarInput(this)"></div>').join('')+'</div>';
+        $('vCont').textContent=p.content;
+    }
+    updateVTok();
+}
+function onVarInput(el){
+    window._viewVars[el.dataset.var]=el.value;
+    const p=P.find(x=>x.id===window._viewId);if(!p)return;
+    $('vCont').textContent=fillTemplate(p.content,window._viewVars);
+    updateVTok();
+}
+function updateVTok(){
+    const p=P.find(x=>x.id===window._viewId);if(!p||!$('vTok'))return;
+    const filled=fillTemplate(p.content,window._viewVars||{});
+    $('vTok').textContent=filled.length+'자 · 예상 ~'+estTok(filled)+' 토큰'+(extractVars(p.content).length?' · 변수 '+extractVars(p.content).length+'개':'');
 }
 
 function cpP(id){const p=P.find(x=>x.id===id);if(!p)return;clip(p.content);toast('"'+p.name+'" 복사됨','s')}
-function copyView(){clip($('vCont').textContent);toast('복사됨','s')}
+function copyView(){const p=P.find(x=>x.id===window._viewId);const t=p?fillTemplate(p.content,window._viewVars||{}):$('vCont').textContent;clip(t);toast('복사됨 (변수 적용)','s')}
 function clip(t){if(navigator.clipboard)navigator.clipboard.writeText(t).catch(()=>fbClip(t));else fbClip(t)}
 function fbClip(t){const a=document.createElement('textarea');a.value=t;a.style.position='fixed';a.style.left='-9999px';document.body.appendChild(a);a.select();document.execCommand('copy');document.body.removeChild(a)}
 
@@ -1402,7 +1506,7 @@ async function dlP(id){
 function editP(id){
     const p=P.find(x=>x.id===id);if(!p)return;editId=id;
     $('mAddT').textContent='프롬프트 수정';$('pName').value=p.name;$('pCat').value=p.category||'';$('pCont').value=p.content;
-    updCatDL();$('mAdd').classList.add('active');$('pName').focus();
+    updCatDL();updatePTok();$('mAdd').classList.add('active');$('pName').focus();
 }
 
 async function delP(id){
@@ -1435,12 +1539,14 @@ $('impF').addEventListener('change',function(e){
 
                 saveP2();render();
                 toast('가져오기 완료 (+'+result.added+' /↑'+result.updated+' /='+result.skipped+')','s');
+                if(result.conflicts&&result.conflicts.length)showConflicts(result.conflicts);
             }else if(f.name.endsWith('.txt')){
                 const nm=f.name.replace('.txt','');
                 // txt 파일은 이름 매칭 체크
                 const existing = P.find(p => normName(p.name) === normName(nm));
                 if(existing){
                     if(confirm('"'+nm+'" 이름의 프롬프트가 이미 존재합니다.\n덮어쓰시겠습니까?')){
+                        pushHist({...existing});
                         existing.content = ev.target.result;
                         // ★ 수정: updatedAt을 toISOString()으로 통일
                         existing.updatedAt = new Date().toISOString();
@@ -1448,7 +1554,7 @@ $('impF').addEventListener('change',function(e){
                     }
                 }else{
                     // ★ 수정: updatedAt을 toISOString()으로 통일
-                    P.push({id:gid(),name:nm,category:'가져오기',content:ev.target.result,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
+                    const _nid=gid();P.push({id:_nid,name:nm,category:'가져오기',content:ev.target.result,fav:false,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});pOrd.unshift(_nid);savePO();
                     saveP2();render();toast('"'+nm+'" 가져옴','s');
                 }
             }
@@ -1456,6 +1562,49 @@ $('impF').addEventListener('change',function(e){
     };
     r.readAsText(f,'UTF-8');e.target.value='';
 });
+
+// ================================================================
+// ========== 기능확장: 즐겨찾기/토큰/변수/히스토리/충돌/팔레트 ==========
+// ================================================================
+function toggleFav(id){const p=P.find(x=>x.id===id);if(!p)return;p.fav=!p.fav;p.updatedAt=new Date().toISOString();saveP2();render();toast(p.fav?'⭐ 즐겨찾기 고정':'☆ 즐겨찾기 해제','s')}
+function estTok(t){if(!t)return 0;const ko=(t.match(/[가-힣]/g)||[]).length;const rest=t.length-ko;return Math.ceil(ko*1.6+rest*0.35)}
+function extractVars(t){const s=new Set();if(!t)return[];const re=/\{\{\s*([^{}]+?)\s*\}\}/g;let m;while((m=re.exec(t))){const k=(m[1]||'').trim().slice(0,30);if(k)s.add(k);if(s.size>=20)break}return[...s]}
+function fillTemplate(t,map){if(!t)return'';map=map||{};return t.replace(/\{\{\s*([^{}]+?)\s*\}\}/g,(m,k)=>{const key=(k||'').trim().slice(0,30);const v=map[key];return(v!==undefined&&v!=='')?v:m})}
+function updatePTok(){const el=$('pTok');if(!el)return;const t=$('pCont').value||'';const n=extractVars(t).length;el.textContent=t.length+'자 · 예상 ~'+estTok(t)+' 토큰'+(n?' · 변수 '+n+'개 {{}}':'')}
+
+// ---- 버전 히스토리 (prompt별 최근 20개) ----
+function getHist(){try{return JSON.parse(localStorage.getItem('pmHist2')||'{}')}catch(e){return{}}}
+function setHist(h){safeLSSet('pmHist2',JSON.stringify(h))}
+function pushHist(p){if(!p||!p.id)return;try{const h=getHist();const arr=h[p.id]||[];if(arr[0]&&arr[0].content===p.content&&arr[0].name===p.name)return;arr.unshift({name:p.name,category:p.category||'',content:p.content,updatedAt:p.updatedAt||new Date().toISOString()});while(arr.length>20)arr.pop();h[p.id]=arr;setHist(h)}catch(e){}}
+function showHist(id){const p=P.find(x=>x.id===id);if(!p)return;window._histId=id;const h=getHist();const arr=h[id]||[];$('mHistT').textContent='🕘 '+(p.fav?'⭐ ':'')+p.name+' — '+arr.length+'개 버전';$('histList').innerHTML=arr.length?arr.map((s,i)=>'<div class="histrow"><div class="hm">'+(i===0?'최신 백업 · ':'')+fmtD(s.updatedAt)+' · '+esc(s.content.length+'자')+'</div><div class="hp">'+esc(s.content.slice(0,300))+(s.content.length>300?'…':'')+'</div><div style="margin-top:8px;text-align:right;display:flex;gap:6px;justify-content:flex-end"><button class="fsm" onclick="previewHist('+i+')">미리보기</button><button class="fsm" style="background:#6c7bbf;color:#fff" onclick="restoreHist('+i+')">이 버전으로 복원</button></div></div>').join(''):'<div class="empty" style="grid-column:auto"><div class="ic">🕘</div><h3>아직 히스토리가 없습니다</h3><p>다음 수정부터 자동 저장됩니다</p></div>';$('mHist').classList.add('active')}
+function closeHist(){$('mHist').classList.remove('active');window._histId=null}
+function previewHist(i){const h=getHist();const s=(h[window._histId]||[])[i];if(!s)return;const p=P.find(x=>x.id===window._histId);window._viewId=null;window._viewVars={};$('mViewT').textContent=(p&&p.fav?'⭐ ':'')+(p?p.name:s.name)+' (버전 '+fmtD(s.updatedAt)+')';$('vVars').innerHTML='';$('vCont').textContent=s.content;const vt=$('vTok');if(vt)vt.textContent=s.content.length+'자 · 예상 ~'+estTok(s.content)+' 토큰';closeHist();$('mView').classList.add('active')}
+async function restoreHist(i){const id=window._histId;const p=P.find(x=>x.id===id);const h=getHist();const s=(h[id]||[])[i];if(!p||!s)return;if(!confirm('이 버전으로 되돌리시겠습니까?\n('+fmtD(s.updatedAt)+' · '+s.content.length+'자)'))return;pushHist({...p});p.name=s.name;p.category=s.category;p.content=s.content;p.updatedAt=new Date().toISOString();await saveP2();closeHist();render();toast('↩️ 버전 복원 완료','s')}
+
+// ---- 동기화 충돌 해결 ----
+let _conflicts=[];
+function getResolved(){try{return JSON.parse(localStorage.getItem('pmResolved2')||'{}')}catch(e){return{}}}
+function showConflicts(list){_conflicts=list||[];if(!_conflicts.length)return;$('cfN').textContent=_conflicts.length;renderConflicts();$('mConflict').classList.add('active')}
+function closeConflict(){$('mConflict').classList.remove('active')}
+function renderConflicts(){$('cfN').textContent=_conflicts.length;$('cfList').innerHTML=_conflicts.map((c,i)=>{const r=c.remote||{};const l=P.find(x=>x.id===c.localId)||{};return '<div class="cfrow"><h4>'+(l.fav?'⭐ ':'')+esc(l.name||r.name||'(이름 없음)')+'</h4><div class="conflict-meta">로컬 '+fmtD(l.updatedAt||'')+' vs 원격 '+fmtD(r.updatedAt||'')+'</div><div class="cfcols"><div class="cfcol"><b>📱 로컬 유지</b>'+esc((l.content||'').slice(0,400))+'</div><div class="cfcol"><b>☁️ 원격 적용</b>'+esc(((r.content||'')).slice(0,400))+'</div></div><div style="display:flex;gap:6px;justify-content:flex-end"><button class="fsm" onclick="keepLocal('+i+')">로컬 유지</button><button class="fsm" style="background:#6c7bbf;color:#fff" onclick="takeRemote('+i+')">원격 적용</button></div></div>'}).join('')||'<div class="empty">충돌 없음</div>'}
+async function keepLocal(i){const c=_conflicts[i];if(c&&c.remote){try{const r=getResolved();r[c.localId]=JSON.stringify({content:c.remote.content||'',updatedAt:c.remote.updatedAt||''});safeLSSet('pmResolved2',JSON.stringify(r))}catch(e){}}_conflicts.splice(i,1);if(!_conflicts.length){closeConflict();toast('로컬 버전 유지 (다음 동기화부터 묻지 않음)','s')}else renderConflicts()}
+async function takeRemote(i){const c=_conflicts[i];if(!c)return;const p=P.find(x=>x.id===c.localId);const r=c.remote||{};if(p){pushHist({...p});p.name=r.name||p.name;p.category=r.category||'';p.content=r.content||p.content;p.updatedAt=r.updatedAt||new Date().toISOString();if(r.fav!==undefined)p.fav=!!r.fav;await saveP2(true)}try{const rs=getResolved();if(rs[c.localId]){delete rs[c.localId];safeLSSet('pmResolved2',JSON.stringify(rs))}}catch(e){}_conflicts.splice(i,1);render();if(!_conflicts.length){closeConflict();toast('원격 버전 적용 완료','s')}else renderConflicts()}
+
+// ---- 커맨드 팔레트 (Ctrl+K) ----
+let _palIdx=0;
+function openPal(){$('mPal').classList.add('active');$('palInput').value='';_palIdx=0;renderPal();setTimeout(()=>$('palInput').focus(),50)}
+function closePal(){$('mPal').classList.remove('active')}
+function palItems(){const q=($('palInput').value||'').toLowerCase().trim();let list=[...P].sort((a,b)=>(b.fav-a.fav)||(new Date(b.updatedAt||b.createdAt)-new Date(a.updatedAt||a.createdAt)));if(q)list=list.filter(p=>(p.name||'').toLowerCase().includes(q)||(p.content||'').toLowerCase().includes(q)||(p.category||'').toLowerCase().includes(q));return list.slice(0,12)}
+function renderPal(){const list=palItems();if(_palIdx>=list.length)_palIdx=0;$('palList').innerHTML=list.length?list.map((p,i)=>'<div class="palitem'+(i===_palIdx?' sel':'')+'" data-id="'+p.id+'" onclick="palGo(\''+p.id+'\')"><span class="pn">'+(p.fav?'⭐ ':'')+esc(p.name)+'</span><span class="pc">'+esc(p.category||'')+'</span></div>').join(''):'<div class="palhint">검색 결과 없음</div>'}
+function palGo(id){closePal();viewP(id)}
+function palKey(e){
+    if(!$('mPal').classList.contains('active'))return false;
+    const list=palItems();
+    if(e.key==='ArrowDown'){e.preventDefault();_palIdx=Math.min(_palIdx+1,list.length-1);renderPal();return true}
+    if(e.key==='ArrowUp'){e.preventDefault();_palIdx=Math.max(_palIdx-1,0);renderPal();return true}
+    if(e.key==='Enter'){e.preventDefault();if(list[_palIdx])palGo(list[_palIdx].id);return true}
+    return false;
+}
 
 // ========== 유틸 ==========
 function $(id){return document.getElementById(id)}
@@ -1473,7 +1622,9 @@ function toast(msg,type){
 
 // ========== 단축키 ==========
 document.addEventListener('keydown',function(e){
-    if(e.key==='Escape'){closeAdd();closeView();closeSettings()}
+    if(e.key==='Escape'){closeAdd();closeView();closeSettings();closeHist();closeConflict();closePal();return}
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openPal();return}
+    if(palKey(e))return;
     if(e.ctrlKey&&e.key==='n'){e.preventDefault();openAdd()}
     if(e.ctrlKey&&e.key==='s'){e.preventDefault();doExport()}
 });
@@ -1499,6 +1650,9 @@ function setupBackdropClose(id,closeFn){
 setupBackdropClose('mAdd',closeAdd);
 setupBackdropClose('mView',closeView);
 setupBackdropClose('mSet',closeSettings);
+setupBackdropClose('mHist',closeHist);
+setupBackdropClose('mConflict',closeConflict);
+setupBackdropClose('mPal',closePal);
 
 // ========== 초기화 ==========
 async function init(){
